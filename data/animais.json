@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "nome": "Rex",
+    "raca": "Labrador",
+    "tutor": "Carlos Silva",
+    "idade": 3,
+    "telefone": "11999998888",
+    "endereco": "Rua A, 123",
+    "cor": "Dourado",
+    "pelo": "curto",
+    "peso": 30,
+    "alergias": "Nenhuma",
+    "obs": "Muito dócil."
+  },
+  {
+    "id": 2,
+    "nome": "Luna",
+    "raca": "Poodle",
+    "tutor": "Ana Oliveira",
+    "idade": 2,
+    "telefone": "21988887777",
+    "endereco": "Rua B, 456",
+    "cor": "Branco",
+    "pelo": "longo",
+    "peso": 5,
+    "alergias": "Frango",
+    "obs": "Ansiosa, requer cuidado."
+  },
+  {
+    "id": 3,
+    "nome": "Thor",
+    "raca": "Bulldog",
+    "tutor": "Pedro Costa",
+    "idade": 4,
+    "telefone": "31977776666",
+    "endereco": "Rua C, 789",
+    "cor": "Tigrado",
+    "pelo": "curto",
+    "peso": 25,
+    "alergias": "Nenhuma",
+    "obs": ""
+  }
+]
