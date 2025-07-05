@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <title>Teste de Carregamento do Amplify</title>
+    <script src="https://unpkg.com/aws-amplify@4/dist/aws-amplify.min.js"></script>
+</head>
+<body>
+    <h1>Teste de Carregamento do AWS Amplify</h1>
+    <p>Abra o console do navegador (F12) para ver os resultados.</p>
+
+    <script>
+        console.log("Iniciando teste...");
+
+        // Verifica se o objeto global 'aws_amplify' foi criado pela biblioteca
+        if (typeof aws_amplify !== 'undefined') {
+            console.log("%c SUCESSO! ", "background: #28a745; color: white; font-weight: bold;", "O objeto 'aws_amplify' foi encontrado.", aws_amplify);
+            
+            // Vamos verificar se os módulos Auth e API estão dentro dele
+            if (aws_amplify.Auth && aws_amplify.API) {
+                console.log("%c ÓTIMO! ", "background: #3182CE; color: white; font-weight: bold;", "Os módulos 'Auth' e 'API' também foram encontrados dentro do objeto.");
+            } else {
+                console.error("ERRO: O objeto 'aws_amplify' existe, mas os módulos 'Auth' ou 'API' não foram encontrados dentro dele.");
+            }
+
+        } else {
+            console.error("FALHA: O objeto global 'aws_amplify' não foi definido. A biblioteca não carregou ou não foi executada corretamente.");
+        }
+    </script>
+</body>
+</html>
