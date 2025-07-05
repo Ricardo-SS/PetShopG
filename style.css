@@ -771,3 +771,18 @@ header {
   border-radius: 8px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
+/* Adicione estas regras ao final do seu style.css */
+
+/* Faz a sidebar esticar para comportar o botão de logout no final */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+}
+.sidebar-menu {
+    flex-grow: 1;
+}
+
+/* Estilos para o layout de tabela de usuários no desktop */
+.user-grid, .data-card.user-card {
+    grid-template-columns: 2fr 1fr 1fr;
+}

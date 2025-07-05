@@ -1,112 +1,120 @@
-// api.js
-
-// 1. Configuração do AWS Amplify para conectar ao nosso backend na nuvem
-// =====================================================================
 const { Auth, API } = aws_amplify;
 
 Auth.configure({
-    // ID do seu Grupo de Usuários do Cognito
-    userPoolId: 'us-east-1_3AXBtD9Ua',
-    
-    // ID do seu Cliente de Aplicativo do Cognito
-    userPoolWebClientId: '2eo2kqvn1q8vmvilgupo3dot4o',
+  userPoolId: "us-east-1_3AXBtD9Ua",
+  userPoolWebClientId: "2eo2kqvn1q8vmvilgupo3dot4o",
 });
-
 API.configure({
-    endpoints: [
-        {
-            name: "PetCareAPI", // Nome que daremos à nossa API
-            // Sua URL de invocação do API Gateway
-            endpoint: "https://adjwk4bhq1.execute-api.us-east-1.amazonaws.com/v1",
-            
-            // Esta função anexa automaticamente o token de autenticação em cada chamada para a API
-            custom_header: async () => { 
-                try {
-                    // Pega a sessão do usuário logado e retorna o cabeçalho de autorização
-                    return { Authorization: `Bearer ${(await Auth.currentSession()).getIdToken().getJwtToken()}` }
-                } catch (e) {
-                    console.warn("Não foi possível obter a sessão do usuário. A chamada será feita sem token.", e);
-                    // Se não houver usuário logado, não envia o cabeçalho de autorização
-                    return {};
-                }
-            }
+  endpoints: [
+    {
+      name: "PetCareAPI",
+      endpoint: "https://adjwk4bhq1.execute-api.us-east-1.amazonaws.com/v1",
+      custom_header: async () => {
+        try {
+          return {
+            Authorization: `Bearer ${(await Auth.currentSession())
+              .getIdToken()
+              .getJwtToken()}`,
+          };
+        } catch (e) {
+          return {};
         }
-    ]
+      },
+    },
+  ],
 });
 
+const session = {
+  user: null,
+  groups: [],
+  isAdmin: () => session.groups.includes("admins"),
+};
 
-// 2. Funções de API que agora conversam com a AWS
-// ===============================================
 const api = {
-    // --- ANIMAIS ---
-    getAnimais: async () => {
-        try {
-            return await API.get('PetCareAPI', '/items/animais');
-        } catch (error) {
-            console.error("Erro ao buscar animais na AWS:", error);
-            return []; // Retorna um array vazio em caso de erro
-        }
-    },
-    saveAnimal: async (animalData) => {
-        if (animalData.id) { // Se tem ID, atualiza (PUT)
-            return await API.put('PetCareAPI', `/items/animais/${animalData.id}`, { body: animalData });
-        } else { // Se não tem ID, cria um novo (POST)
-            return await API.post('PetCareAPI', '/items/animais', { body: animalData });
-        }
-    },
-    deleteAnimal: async (id) => {
-        return await API.del('PetCareAPI', `/items/animais/${id}`);
-    },
-
-    // --- SERVIÇOS ---
-    getServicos: async () => {
-        try {
-            return await API.get('PetCareAPI', '/items/servicos');
-        } catch (error) {
-            console.error("Erro ao buscar serviços na AWS:", error);
-            return [];
-        }
-    },
-    saveServico: async (servicoData) => {
-        if (servicoData.id) {
-            return await API.put('PetCareAPI', `/items/servicos/${servicoData.id}`, { body: servicoData });
-        } else {
-            return await API.post('PetCareAPI', '/items/servicos', { body: servicoData });
-        }
-    },
-    deleteServico: async (id) => {
-        return await API.del('PetCareAPI', `/items/servicos/${id}`);
-    },
-
-    // --- AGENDAMENTOS ---
-    getAgendamentos: async () => {
-        try {
-            return await API.get('PetCareAPI', '/items/agendamentos');
-        } catch (error) {
-            console.error("Erro ao buscar agendamentos na AWS:", error);
-            return [];
-        }
-    },
-    saveAgendamento: async (agendamentoData) => {
-        if (agendamentoData.id) {
-            return await API.put('PetCareAPI', `/items/agendamentos/${agendamentoData.id}`, { body: agendamentoData });
-        } else {
-            return await API.post('PetCareAPI', '/items/agendamentos', { body: agendamentoData });
-        }
-    },
-    deleteAgendamento: async (id) => {
-        return await API.del('PetCareAPI', `/items/agendamentos/${id}`);
-    },
-
-    // --- LOGIN ---
-    login: async (username, password) => {
-        try {
-            // Usa o serviço de autenticação real do Cognito
-            const user = await Auth.signIn(username, password);
-            return { success: true, user };
-        } catch (error) {
-            console.error("Erro no login:", error);
-            return { success: false, message: `Erro: ${error.message}` };
-        }
+  getAnimais: async () => {
+    try {
+      return await API.get("PetCareAPI", "/items/animais");
+    } catch (error) {
+      console.error("Erro ao buscar animais:", error);
+      return [];
     }
+  },
+  saveAnimal: async (data) =>
+    data.id
+      ? await API.put("PetCareAPI", `/items/animais/${data.id}`, { body: data })
+      : await API.post("PetCareAPI", "/items/animais", { body: data }),
+  deleteAnimal: async (id) =>
+    await API.del("PetCareAPI", `/items/animais/${id}`),
+  getServicos: async () => {
+    try {
+      return await API.get("PetCareAPI", "/items/servicos");
+    } catch (error) {
+      console.error("Erro ao buscar serviços:", error);
+      return [];
+    }
+  },
+  saveServico: async (data) =>
+    data.id
+      ? await API.put("PetCareAPI", `/items/servicos/${data.id}`, {
+          body: data,
+        })
+      : await API.post("PetCareAPI", "/items/servicos", { body: data }),
+  deleteServico: async (id) =>
+    await API.del("PetCareAPI", `/items/servicos/${id}`),
+  getAgendamentos: async () => {
+    try {
+      return await API.get("PetCareAPI", "/items/agendamentos");
+    } catch (error) {
+      console.error("Erro ao buscar agendamentos:", error);
+      return [];
+    }
+  },
+  saveAgendamento: async (data) =>
+    data.id
+      ? await API.put("PetCareAPI", `/items/agendamentos/${data.id}`, {
+          body: data,
+        })
+      : await API.post("PetCareAPI", "/items/agendamentos", { body: data }),
+  deleteAgendamento: async (id) =>
+    await API.del("PetCareAPI", `/items/agendamentos/${id}`),
+
+  login: async (username, password) => {
+    try {
+      session.user = await Auth.signIn(username, password);
+      const userSession = await Auth.currentSession();
+      session.groups = userSession.getIdToken().payload["cognito:groups"] || [];
+      return { success: true };
+    } catch (error) {
+      return { success: false, message: `Erro: ${error.message}` };
+    }
+  },
+  logout: async () => {
+    try {
+      await Auth.signOut();
+      session.user = null;
+      session.groups = [];
+      return { success: true };
+    } catch (error) {
+      return { success: false, error };
+    }
+  },
+  getSession: () => session,
+
+  getUsers: async () => {
+    try {
+      return await API.get("PetCareAPI", "/admin/users");
+    } catch (error) {
+      console.error("Erro ao buscar usuários:", error);
+      return [];
+    }
+  },
+  createUser: async (userData) => {
+    try {
+      return await API.post("PetCareAPI", "/admin/users", { body: userData });
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message;
+      return { success: false, message: errorMessage };
+    }
+  },
+  deleteUser: async (id) => await API.del("PetCareAPI", `/admin/users/${id}`),
 };
