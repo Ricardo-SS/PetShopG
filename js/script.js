@@ -465,29 +465,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   const agendamentosTitle = document.getElementById('agendamentos-title');
   const showAllAgendamentosBtn = document.getElementById('show-all-agendamentos-btn');
 
-  // --- FUNÇÃO DE CONTROLE DE ACESSO ---
   const checkAdminAccess = () => {
-    const session = api.getSession();
-    const adminElements = document.querySelectorAll('.admin-only');
-    
-    if (session.isAdmin()) {
-        adminElements.forEach(el => {
-            el.style.display = el.tagName === 'LI' ? 'list-item' : 'block';
-        });
-    } else {
-        adminElements.forEach(el => {
-            el.style.display = 'none';
-        });
-    }
+      const session = api.getSession();
+      const adminElements = document.querySelectorAll('.admin-only');
+      if (session.isAdmin()) {
+          adminElements.forEach(el => {
+              el.style.display = el.tagName === 'LI' ? 'list-item' : 'block';
+          });
+      } else {
+          adminElements.forEach(el => {
+              el.style.display = 'none';
+          });
+      }
   };
 
   const closeMenu = () => body.classList.remove('menu-open');
-
-  menuToggle.addEventListener('click', (e) => {
-      e.stopPropagation();
-      body.classList.toggle('menu-open');
-  });
-
+  menuToggle.addEventListener('click', (e) => { e.stopPropagation(); body.classList.toggle('menu-open'); });
   menuOverlay.addEventListener('click', closeMenu);
   
   document.querySelectorAll('.sidebar-menu a').forEach(link => {
@@ -508,45 +501,64 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
   
+// Bloco Novo e Corrigido
+
+  // --- LÓGICA DE INICIALIZAÇÃO DA APLICAÇÃO ---
+  const initializeApp = async () => {
+      // Chama a nova função da API para verificar se já existe uma sessão
+      const hasSession = await api.checkAndLoadSession();
+
+      if (hasSession) {
+          console.log("Sessão válida encontrada, iniciando o sistema...");
+          loginSection.style.display = 'none';
+          mainSystem.style.display = 'block';
+          checkAdminAccess(); // Verifica se o usuário é admin
+          await renderAll();    // Renderiza todos os dados
+      } else {
+          console.log("Nenhuma sessão encontrada, exibindo tela de login.");
+          loginSection.style.display = 'flex'; // Garante que a tela de login esteja visível
+          mainSystem.style.display = 'none';
+      }
+  };
+
+  // --- LÓGICA DE LOGIN (quando o usuário clica em Entrar) ---
   loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      const saveBtn = loginForm.querySelector('button[type="submit"]');
+      saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
+      saveBtn.disabled = true;
+
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
       const result = await api.login(username, password);
 
       if (result.success) {
-          loginSection.style.display = 'none';
-          mainSystem.style.display = 'block';
-          checkAdminAccess();
-          await renderAll();
+          await initializeApp(); // Reutiliza a função de inicialização
       } else {
           alert(result.message || "Falha no login.");
       }
+      
+      saveBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+      saveBtn.disabled = false;
   });
+
+  // Inicia a aplicação assim que a página carrega
+  initializeApp();
   
   const navigateToSection = (sectionId) => {
       document.querySelectorAll('.menu-link').forEach(el => el.classList.remove('active'));
-      const linkToActivate = document.querySelector(`.menu-link[data-section="${sectionId}"]`);
-      if (linkToActivate) linkToActivate.classList.add('active');
-      
+      document.querySelector(`.menu-link[data-section="${sectionId}"]`)?.classList.add('active');
       document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-      const sectionToShow = document.getElementById(sectionId);
-      if (sectionToShow) sectionToShow.classList.add('active');
+      document.getElementById(sectionId)?.classList.add('active');
   };
 
-  const openModal = (modalId) => {
-      const modal = document.getElementById(modalId);
-      if(modal) modal.classList.add('active');
-  };
-  const closeModal = (modal) => {
-      if(modal) modal.classList.remove('active');
-  };
+  const openModal = (modalId) => document.getElementById(modalId)?.classList.add('active');
+  const closeModal = (modal) => modal?.classList.remove('active');
   
   document.querySelectorAll('.open-modal').forEach(btn => btn.addEventListener('click', () => openModal(btn.dataset.modal)));
   document.querySelectorAll('.close-modal').forEach(btn => btn.addEventListener('click', () => closeModal(btn.closest('.modal'))));
   window.addEventListener('click', (e) => { if (e.target.classList.contains('modal')) closeModal(e.target) });
 
-  // --- RENDERIZAÇÃO ---
   const renderAll = async () => {
       await Promise.all([
           renderAnimaisView(),
@@ -661,13 +673,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         card.className = 'data-card user-card';
         card.innerHTML = `
             <div class="data-card-header"><div class="title">${user.email}</div></div>
-            <div class="data-card-body"><strong>Função: </strong><span>${user.Groups?.find(g => g.GroupName)?.GroupName || 'Funcionário'}</span></div>
+            <div class="data-card-body"><strong>Função: </strong><span>${user.role || 'Padrão'}</span></div>
             <span class="desktop-view">${user.email}</span>
-            <span class="desktop-view">${user.Groups?.find(g => g.GroupName)?.GroupName || 'Funcionário'}</span>
+            <span class="desktop-view">${user.role || 'Padrão'}</span>
             <div class="data-card-actions">
                 <button title="Excluir" class="btn-delete action-btn"><i class="fas fa-trash"></i></button>
             </div>`;
-        card.querySelector('.btn-delete').addEventListener('click', () => deleteUser(user.Username)); // Cognito usa Username como ID
+        // CORREÇÃO FINAL E DEFINITIVA: Passando user.id, que é o que o backend agora fornece
+        card.querySelector('.btn-delete').addEventListener('click', () => deleteUser(user.id));
         container.appendChild(card);
     });
   };
@@ -784,50 +797,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.editAnimal = async (id) => {
     const item = (await api.getAnimais()).find(i => i.id === id); if (!item) return;
     const form = document.getElementById('animal-form');
-    // Mapeia o objeto item para os campos do formulário
-    form['animal-id'].value = item.id || '';
-    form['animal-name'].value = item.nome || '';
-    form['animal-breed'].value = item.raca || '';
-    form['tutor-name'].value = item.tutor || '';
-    form['tutor-phone'].value = item.telefone || '';
-    form['tutor-address'].value = item.endereco || '';
-    form['fur-color'].value = item.cor || '';
-    form['fur-type'].value = item.pelo || 'curto';
-    form['animal-age'].value = item.idade || '';
-    form['animal-weight'].value = item.peso || '';
-    form['animal-allergies'].value = item.alergias || '';
-    form['animal-notes'].value = item.obs || '';
+    form['animal-id'].value = item.id || ''; form['animal-name'].value = item.nome || ''; form['animal-breed'].value = item.raca || ''; form['tutor-name'].value = item.tutor || ''; form['tutor-phone'].value = item.telefone || ''; form['tutor-address'].value = item.endereco || ''; form['fur-color'].value = item.cor || ''; form['fur-type'].value = item.pelo || 'curto'; form['animal-age'].value = item.idade || ''; form['animal-weight'].value = item.peso || ''; form['animal-allergies'].value = item.alergias || ''; form['animal-notes'].value = item.obs || '';
     openModal('animal-modal');
   };
 
   window.editServico = async (id) => {
     const item = (await api.getServicos()).find(i => i.id === id); if (!item) return;
     const form = document.getElementById('servico-form');
-    form['servico-id'].value = item.id || '';
-    form['servico-nome'].value = item.nome || '';
-    form['servico-preco'].value = item.preco || '';
-    form['servico-duracao'].value = item.duracao || '';
-    form['servico-descricao'].value = item.descricao || '';
+    form['servico-id'].value = item.id || ''; form['servico-nome'].value = item.nome || ''; form['servico-preco'].value = item.preco || ''; form['servico-duracao'].value = item.duracao || ''; form['servico-descricao'].value = item.descricao || '';
     openModal('servico-modal');
   };
 
   window.editAgendamento = async (id) => {
     const item = (await api.getAgendamentos()).find(i => i.id === id); if (!item) return;
     const form = document.getElementById('agendamento-form');
-    form['agendamento-id'].value = item.id || '';
-    form['agendamento-animal-id'].value = item.animalId || '';
-    form['agendamento-servico-id'].value = item.servicoId || '';
-    form['agendamento-data'].value = item.data || '';
-    form['agendamento-hora'].value = item.hora || '';
-    form['agendamento-status'].value = item.status || 'Agendado';
+    form['agendamento-id'].value = item.id || ''; form['agendamento-animal-id'].value = item.animalId || ''; form['agendamento-servico-id'].value = item.servicoId || ''; form['agendamento-data'].value = item.data || ''; form['agendamento-hora'].value = item.hora || ''; form['agendamento-status'].value = item.status || 'Agendado';
     openModal('agendamento-modal');
   };
 
   window.deleteAnimal = async (id) => { if (confirm('Tem certeza?')) { await api.deleteAnimal(id); await renderAll(); } };
   window.deleteServico = async (id) => { if (confirm('Tem certeza?')) { await api.deleteServico(id); await renderAll(); } };
   window.deleteAgendamento = async (id) => { if (confirm('Tem certeza?')) { await api.deleteAgendamento(id); await renderAll(); } };
-  window.deleteUser = async (id) => { if (confirm(`Tem certeza que deseja excluir o usuário ${id}?`)) { await api.deleteUser(id); await renderUsersView(); } };
-
+  
   document.getElementById('save-user-btn').addEventListener('click', async () => {
     const form = document.getElementById('user-form');
     const userData = { email: form['user-email'].value, password: form['user-password'].value };
@@ -837,7 +828,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     saveBtn.disabled = true;
     try {
         const result = await api.createUser(userData);
-        if (result.success || result.User) {
+        if (result.User || result.success) {
             form.reset();
             closeModal(document.getElementById('user-modal'));
             await renderUsersView();
@@ -852,4 +843,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  window.deleteUser = async (id) => {
+    // CORREÇÃO FINAL: O parâmetro aqui é o ID (que no caso é o username/email)
+    if (confirm(`Tem certeza que deseja excluir o usuário ${id}?`)) {
+        try {
+            await api.deleteUser(id);
+            await renderUsersView();
+        } catch (error) {
+            alert("Falha ao excluir usuário: " + (error.response?.data?.message || error.message));
+        }
+    }
+  };
 });

@@ -116,5 +116,26 @@ const api = {
       return { success: false, message: errorMessage };
     }
   },
+
+  // Adicione esta função dentro do objeto 'api' no seu api.js
+
+    checkAndLoadSession: async () => {
+        try {
+            // Tenta obter o usuário autenticado atual. Se falhar, vai para o catch.
+            session.user = await Auth.currentAuthenticatedUser();
+            
+            // Se funcionou, pega os dados da sessão (incluindo os grupos de admin)
+            const userSession = await Auth.currentSession();
+            session.groups = userSession.getIdToken().payload['cognito:groups'] || [];
+            
+            return true; // Retorna true se houver uma sessão válida
+        } catch (e) {
+            // Se não houver sessão, limpa os dados locais e retorna false
+            session.user = null;
+            session.groups = [];
+            return false;
+        }
+    },
+    
   deleteUser: async (id) => await API.del("PetCareAPI", `/admin/users/${id}`),
 };
