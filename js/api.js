@@ -119,8 +119,6 @@ const api = {
     }
   },
 
-  // Adicione esta função dentro do objeto 'api' no seu api.js
-
     checkAndLoadSession: async () => {
         try {
             // Tenta obter o usuário autenticado atual. Se falhar, vai para o catch.
