@@ -8,7 +8,9 @@ API.configure({
   endpoints: [
     {
       name: "PetCareAPI",
-      endpoint: "https://adjwk4bhq1.execute-api.us-east-1.amazonaws.com/v1",
+      // endpoint: "https://adjwk4bhq1.execute-api.us-east-1.amazonaws.com/v1",
+      endpoint: "https://api.ricardo.group-05.dev.ufersa.dev.br",
+      
       custom_header: async () => {
         try {
           return {
