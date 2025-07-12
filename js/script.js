@@ -17,12 +17,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   // --- FUNÇÃO DE CONTROLE DE ACESSO ---
   const checkAdminAccess = () => {
     const session = api.getSession();
-    // Adiciona ou remove a classe 'is-admin' do body baseado no grupo do usuário
-    document.body.classList.toggle('is-admin', session.isAdmin());
+    const adminElements = document.querySelectorAll('.admin-only');
+    const displayValue = session.isAdmin() ? 'block' : 'none';
+    
+    adminElements.forEach(el => {
+        el.style.display = el.tagName === 'LI' ? (session.isAdmin() ? 'list-item' : 'none') : displayValue;
+    });
   };
 
   const closeMenu = () => body.classList.remove('menu-open');
-
   menuToggle.addEventListener('click', (e) => { e.stopPropagation(); body.classList.toggle('menu-open'); });
   menuOverlay.addEventListener('click', closeMenu);
   
@@ -44,7 +47,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
   
-  // --- LÓGICA DE INICIALIZAÇÃO DA APLICAÇÃO ---
   const initializeApp = async () => {
       const hasSession = await api.checkAndLoadSession();
       if (hasSession) {
@@ -58,7 +60,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
   };
 
-  // --- LÓGICA DE LOGIN ---
   loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const saveBtn = loginForm.querySelector('button[type="submit"]');
@@ -77,34 +78,25 @@ document.addEventListener('DOMContentLoaded', async () => {
       saveBtn.disabled = false;
   });
   
-  // --- LÓGICA DE NAVEGAÇÃO ---
   const navigateToSection = (sectionId) => {
       document.querySelectorAll('.menu-link').forEach(el => el.classList.remove('active'));
-      const linkToActivate = document.querySelector(`.menu-link[data-section="${sectionId}"]`);
-      if (linkToActivate) linkToActivate.classList.add('active');
-      
+      document.querySelector(`.menu-link[data-section="${sectionId}"]`)?.classList.add('active');
       document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-      const sectionToShow = document.getElementById(sectionId);
-      if (sectionToShow) sectionToShow.classList.add('active');
+      document.getElementById(sectionId)?.classList.add('active');
   };
 
-  // --- LÓGICA DE MODAIS ---
-  const openModal = (modalId) => {
-    const modal = document.getElementById(modalId);
-    if(modal) modal.classList.add('active');
-  }
-  const closeModal = (modal) => {
-      if(modal) modal.classList.remove('active');
-  }
+  const openModal = (modalId) => document.getElementById(modalId)?.classList.add('active');
+  const closeModal = (modal) => modal?.classList.remove('active');
   
   document.querySelectorAll('.open-modal').forEach(btn => btn.addEventListener('click', (e) => {
+      // Limpa formulários antes de abrir o modal para criação
       const modalId = e.currentTarget.dataset.modal;
       if (modalId === 'user-modal') {
         document.getElementById('user-modal-title').textContent = "Novo Usuário";
         const form = document.getElementById('user-form');
         form.reset();
-        form.querySelector('#user-id').value = ''; 
-        form.querySelector('#user-email').disabled = false;
+        form['user-id'] = null; // Garante que não tenha ID de edição
+        form['user-email'].disabled = false;
         document.getElementById('password-group').style.display = 'block';
       }
       openModal(modalId);
@@ -113,7 +105,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.querySelectorAll('.close-modal').forEach(btn => btn.addEventListener('click', () => closeModal(btn.closest('.modal'))));
   window.addEventListener('click', (e) => { if (e.target.classList.contains('modal')) closeModal(e.target) });
 
-  // --- LÓGICA DE BUSCA ---
   animalSearchBtn.addEventListener('click', async () => {
     const searchTerm = animalSearchInput.value.trim();
     if(searchTerm) {
@@ -128,15 +119,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     await renderAnimaisView();
   });
 
-  // --- RENDERIZAÇÃO ---
   const renderAll = async () => {
       await Promise.all([
-          renderAnimaisView(),
-          renderServicosCards(),
-          renderAgendamentosView(),
-          renderDashboardStats(),
-          renderCalendar(),
-          populateAgendamentoFormSelects(),
+          renderAnimaisView(), renderServicosCards(), renderAgendamentosView(),
+          renderDashboardStats(), renderCalendar(), populateAgendamentoFormSelects(),
           renderUsersView()
       ]);
       await showAppointmentsForDay(new Date().toISOString().slice(0, 10));
@@ -393,7 +379,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   document.getElementById('save-user-btn').addEventListener('click', async () => {
     const form = document.getElementById('user-form');
-    const id = form.querySelector('#user-id').value;
+    const id = form['user-id'];
     const saveBtn = document.getElementById('save-user-btn');
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
     saveBtn.disabled = true;
@@ -404,13 +390,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             result = await api.saveUser(id, userData);
         } else {
             const userData = { email: form['user-email'].value, password: form['user-password'].value, name: form['user-name'].value, funcao: form['user-funcao'].value, isAdmin: form['user-isAdmin'].checked };
-            if (!userData.email || !userData.password) { throw new Error("E-mail e senha são obrigatórios para novos usuários."); }
+            if (!userData.email || !userData.password) { throw new Error("E-mail e senha são obrigatórios."); }
             result = await api.createUser(userData);
         }
         if (result.success) {
             form.reset();
-            form.querySelector('#user-id').value = '';
-            form.querySelector('#user-email').disabled = false;
+            form['user-id'] = null;
+            form['user-email'].disabled = false;
             document.getElementById('password-group').style.display = 'block';
             closeModal(document.getElementById('user-modal'));
             await renderUsersView();
@@ -428,12 +414,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.editUser = (user) => {
     const form = document.getElementById('user-form');
     document.getElementById('user-modal-title').textContent = "Editar Usuário";
-    form.querySelector('#user-id').value = user.Username;
-    form.querySelector('#user-name').value = user.name;
-    form.querySelector('#user-email').value = user.email;
-    form.querySelector('#user-email').disabled = true;
-    form.querySelector('#user-funcao').value = user.funcao;
-    form.querySelector('#user-isAdmin').checked = user.isAdmin;
+    form['user-id'] = user.Username;
+    form['user-name'].value = user.name;
+    form['user-email'].value = user.email;
+    form['user-email'].disabled = true;
+    form['user-funcao'].value = user.funcao;
+    form['user-isAdmin'].checked = user.isAdmin;
     document.getElementById('password-group').style.display = 'none';
     openModal('user-modal');
   };
@@ -452,3 +438,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Ponto de partida da aplicação
   initializeApp();
 });
+
+const checkAdminAccess = () => {
+    const session = api.getSession();
+    // Adiciona ou remove a classe 'is-admin' do body baseado no grupo do usuário.
+    // É simples e muito mais confiável.
+    document.body.classList.toggle('is-admin', session.isAdmin());
+};

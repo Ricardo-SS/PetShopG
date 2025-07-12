@@ -766,6 +766,7 @@ header {
     grid-template-columns: 2fr 2fr 1.5fr 0.5fr 1fr;
   }
 }
+
 /* --- REGRAS DE CONTROLE DE ACESSO --- */
 
 /* Por padrão, esconde qualquer elemento que só o admin pode ver */
@@ -774,7 +775,7 @@ header {
 }
 
 /* Quando o usuário logado for admin, o body receberá a classe 'is-admin' */
-/* E estas regras serão aplicadas para mostrar os elementos. */
+/* e estas regras serão aplicadas para mostrar os elementos. */
 body.is-admin .admin-only {
     display: block !important;
 }
