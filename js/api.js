@@ -84,16 +84,50 @@ const api = {
   deleteAgendamento: async (id) =>
     await API.del("PetCareAPI", `/items/agendamentos/${id}`),
 
-  login: async (username, password) => {
-    try {
-      session.user = await Auth.signIn(username, password);
-      const userSession = await Auth.currentSession();
-      session.groups = userSession.getIdToken().payload["cognito:groups"] || [];
-      return { success: true };
-    } catch (error) {
-      return { success: false, message: `Erro: ${error.message}` };
-    }
-  },
+login: async (username, password) => {
+        try {
+            // Tenta o login normal primeiro
+            const user = await Auth.signIn(username, password);
+
+            // Se o usuário estiver no estado de mudança de senha, o código abaixo não será executado.
+            // O erro será pego pelo bloco CATCH.
+            if (user) {
+                session.user = user;
+                const userSession = await Auth.currentSession();
+                session.groups = userSession.getIdToken().payload['cognito:groups'] || [];
+                return { success: true };
+            }
+        } catch (error) {
+            // Verifica se o erro é o desafio de "Nova Senha Necessária"
+            if (error.code === 'NewPasswordRequired') {
+                const newPassword = prompt("Você é um novo usuário. Por favor, defina sua senha permanente:");
+                
+                if (!newPassword) {
+                    return { success: false, message: "A definição de nova senha foi cancelada." };
+                }
+                
+                try {
+                    // O objeto 'user' está dentro do erro neste caso
+                    const cognitoUser = error.user;
+                    // Completa o desafio de autenticação enviando a nova senha
+                    await Auth.completeNewPassword(cognitoUser, newPassword);
+                    
+                    // Agora que a senha foi definida, o login está completo.
+                    // Recarregamos a sessão para pegar os grupos.
+                    const userSession = await Auth.currentSession();
+                    session.groups = userSession.getIdToken().payload['cognito:groups'] || [];
+                    session.user = await Auth.currentAuthenticatedUser();
+                    return { success: true };
+
+                } catch (newPasswordError) {
+                    return { success: false, message: `Erro ao definir a nova senha: ${newPasswordError.message}` };
+                }
+            }
+            
+            // Para todos os outros erros (senha errada, usuário não encontrado, etc.)
+            return { success: false, message: `Erro: ${error.message}` };
+        }
+    },
   logout: async () => {
     try {
       await Auth.signOut();

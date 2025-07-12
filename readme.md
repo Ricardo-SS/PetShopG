@@ -2,144 +2,115 @@
 login: admin
 senha: Admin@123
 
+login: user
+senha: User@123
+
 # SITE
 https://ricardo.group-05.dev.ufersa.dev.br/
 
 # FUNÇAO LAMBDA
+
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, ScanCommand, PutCommand, GetCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
-import { CognitoIdentityProviderClient, AdminCreateUserCommand, ListUsersCommand, AdminDeleteUserCommand } from "@aws-sdk/client-cognito-identity-provider";
-import { randomUUID } from "crypto";
+import { PutCommand, ScanCommand, DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { randomUUID } from 'node:crypto'; // Importa a função específica
 
-const ddbClient = new DynamoDBClient({});
-const docClient = DynamoDBDocumentClient.from(ddbClient);
-const cognitoClient = new CognitoIdentityProviderClient({});
+const client = new DynamoDBClient({});
+const docClient = DynamoDBDocumentClient.from(client);
 
-const tableMap = {
-    animais: 'petcare-animais',
-    servicos: 'petcare-servicos',
-    agendamentos: 'petcare-agendamentos'
-};
-const USER_POOL_ID = process.env.USER_POOL_ID;
+// Nome da tabela e chave primária confirmados
+const TABLE_NAME = "users";
 
 export const handler = async (event) => {
-    console.log("Evento Recebido: ", JSON.stringify(event));
-    
+    console.log("Received event:", JSON.stringify(event, null, 2));
+
     const headers = {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS"
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token"
     };
 
     if (event.httpMethod === 'OPTIONS') {
-        return { statusCode: 204, headers };
+        return {
+            statusCode: 200,
+            headers: headers,
+            body: JSON.stringify({ message: "CORS preflight successful" }),
+        };
     }
 
-    try {
-        let responseBody;
-        const path = event.path;
-        const httpMethod = event.httpMethod;
+    if (event.httpMethod === 'POST') {
+        try {
+            const body = JSON.parse(event.body);
+            const { nome, endereco, telefone, email } = body;
 
-        if (path.startsWith('/admin/users')) {
-            const userId = event.pathParameters?.id; 
-
-            switch (httpMethod) {
-                case 'GET':
-                    const listUsersCommand = new ListUsersCommand({ UserPoolId: USER_POOL_ID });
-                    const { Users } = await cognitoClient.send(listUsersCommand);
-                    // AQUI GARANTIMOS O FORMATO CORRETO DO DADO
-                    responseBody = Users.map(user => ({
-                        id: user.Username, // Cria a propriedade 'id'
-                        email: user.Attributes.find(attr => attr.Name === 'email').Value,
-                        role: 'Funcionário', // Lógica de role pode ser expandida aqui
-                        createdAt: user.UserCreateDate
-                    }));
-                    break;
-                case 'POST':
-                    const { email, password } = JSON.parse(event.body);
-                    const createUserCommand = new AdminCreateUserCommand({
-                        UserPoolId: USER_POOL_ID,
-                        Username: email,
-                        TemporaryPassword: password,
-                        UserAttributes: [{ Name: "email", Value: email }, { Name: "email_verified", Value: "true" }],
-                        MessageAction: "SUPPRESS"
-                    });
-                    const createdUser = await cognitoClient.send(createUserCommand);
-                    responseBody = { success: true, user: createdUser.User };
-                    break;
-                case 'DELETE':
-                    if (!userId) throw new Error("ID do usuário (username) é necessário para exclusão.");
-                    const deleteUserCommand = new AdminDeleteUserCommand({ UserPoolId: USER_POOL_ID, Username: userId });
-                    await cognitoClient.send(deleteUserCommand);
-                    responseBody = { success: true, message: `Usuário ${userId} excluído com sucesso.` };
-                    break;
-                default:
-                    throw new Error(`Método ${httpMethod} não suportado para ${path}`);
+            if (!nome || !endereco || !telefone || !email) {
+                return {
+                    statusCode: 400,
+                    headers: headers,
+                    body: JSON.stringify({ message: "Missing required fields (nome, endereco, telefone, email)" }),
+                };
             }
-        } else if (path.startsWith('/items/')) {
-            const resourceType = event.pathParameters?.type;
-            const id = event.pathParameters?.id;
-            const tableName = tableMap[resourceType];
-            if (!tableName) throw new Error(`Recurso inválido: '${resourceType}'`);
-            
-            switch (httpMethod) {
-                case 'GET':
-                    if (id) {
-                        const command = new GetCommand({ TableName: tableName, Key: { id } });
-                        const { Item } = await docClient.send(command);
-                        responseBody = Item || { message: "Item não encontrado" };
-                    } else {
-                        const command = new ScanCommand({ TableName: tableName });
-                        const { Items } = await docClient.send(command);
-                        responseBody = Items;
-                    }
-                    break;
-                case 'POST':
-                    const itemDataToCreate = JSON.parse(event.body);
-                    itemDataToCreate.id = randomUUID();
-                    const createCommand = new PutCommand({ TableName: tableName, Item: itemDataToCreate });
-                    await docClient.send(createCommand);
-                    responseBody = itemDataToCreate;
-                    break;
-                case 'PUT':
-                    if (!id) throw new Error("ID é necessário para atualização (PUT)");
-                    const itemDataToUpdate = JSON.parse(event.body);
-                    itemDataToUpdate.id = id;
-                    const updateCommand = new PutCommand({ TableName: tableName, Item: itemDataToUpdate });
-                    await docClient.send(updateCommand);
-                    responseBody = itemDataToUpdate;
-                    break;
-                case 'DELETE':
-                     if (!id) throw new Error("ID é necessário para exclusão (DELETE)");
-                    const deleteCommand = new DeleteCommand({ TableName: tableName, Key: { id } });
-                    await docClient.send(deleteCommand);
-                    responseBody = { message: `Item ${id} excluído com sucesso.` };
-                    break;
-                default:
-                    throw new Error(`Método HTTP não suportado: ${httpMethod}`);
-            }
-        } else {
-            throw new Error(`Caminho não reconhecido: ${path}`);
+
+            const userId = randomUUID(); // Usa a função diretamente
+            const params = {
+                TableName: TABLE_NAME,
+                Item: {
+                    id: userId, // para a chave primária "id"
+                    nome: nome,
+                    endereco: endereco,
+                    telefone: telefone,
+                    email: email,
+                    createdAt: new Date().toISOString(),
+                },
+            };
+
+            const command = new PutCommand(params);
+            await docClient.send(command);
+
+            return {
+                statusCode: 201,
+                headers: headers,
+                body: JSON.stringify({ message: "User created successfully", userId: userId }),
+            };
+
+        } catch (error) {
+            console.error("Error creating user:", error);
+            return {
+                statusCode: 500,
+                headers: headers,
+                body: JSON.stringify({ message: "Failed to create user", error: error.message }),
+            };
         }
-
-        return { statusCode: 200, headers, body: JSON.stringify(responseBody) };
-
-    } catch (error) {
-        console.error("ERRO DETALHADO na Lambda:", error);
-        let statusCode = 400;
-        let message = "Ocorreu um erro ao processar sua solicitação.";
-        
-        if (error.name === 'UsernameExistsException') {
-            statusCode = 409;
-            message = "Este e-mail de usuário já está cadastrado.";
-        } else if (error.name === 'InvalidPasswordException') {
-            statusCode = 400;
-            message = "A senha não atende aos requisitos de segurança.";
-        } else if (error.name === 'UserNotFoundException') {
-            statusCode = 404;
-            message = "Usuário não encontrado.";
-        }
-
-        return { statusCode, headers, body: JSON.stringify({ message }) };
     }
+
+    if (event.httpMethod === 'GET') {
+        try {
+            const params = {
+                TableName: TABLE_NAME,
+                Select: "COUNT",
+            };
+
+            const command = new ScanCommand(params);
+            const data = await docClient.send(command);
+
+            return {
+                statusCode: 200,
+                headers: headers,
+                body: JSON.stringify({ userCount: data.Count }),
+            };
+
+        } catch (error) {
+            console.error("Error getting user count:", error);
+            return {
+                statusCode: 500,
+                headers: headers,
+                body: JSON.stringify({ message: "Failed to get user count", error: error.message }),
+            };
+        }
+    }
+
+    return {
+        statusCode: 405,
+        headers: headers,
+        body: JSON.stringify({ message: "Method Not Allowed" }),
+    };
 };
