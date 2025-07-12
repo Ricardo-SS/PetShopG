@@ -27,7 +27,6 @@ body {
 body.menu-open {
   overflow: hidden;
 }
-
 #main-system {
   display: none;
   flex-direction: column;
@@ -90,8 +89,6 @@ header {
 .user-name-desktop {
   display: none;
 }
-
-/* --- MENU HAMBURGER E SIDEBAR --- */
 .menu-toggle {
   background: none;
   border: none;
@@ -169,8 +166,6 @@ header {
 #logout-btn:hover {
   background: #e53e3e !important;
 }
-
-/* --- LAYOUTS --- */
 .main-content {
   display: flex;
   flex-direction: column;
@@ -283,7 +278,6 @@ header {
   font-size: 0.9rem;
   color: #718096;
 }
-
 /* --- CALENDÁRIO --- */
 .calendar {
   margin-top: 20px;
@@ -356,8 +350,6 @@ header {
   top: 4px;
   left: 4px;
 }
-
-/* --- LAYOUT DE DADOS (Cards/Tabelas Responsivas) --- */
 .data-grid-header {
   display: none;
 }
@@ -399,6 +391,9 @@ header {
   gap: 8px;
   font-size: 0.95rem;
 }
+.data-card-body strong {
+  color: var(--dark);
+}
 .data-card-body span {
   color: #4a5568;
 }
@@ -410,16 +405,33 @@ header {
 .data-card-actions .btn {
   flex-grow: 1;
 }
-.admin-only {
-  display: none;
-}
 .btn-delete[disabled] {
   background-color: #a0aec0;
   cursor: not-allowed;
   opacity: 0.6;
 }
 
-/* --- GERAL --- */
+/* --- REGRAS DE NAVEGAÇÃO E CONTROLE DE ACESSO (CORRIGIDO) --- */
+.section {
+  display: none;
+}
+.section.active {
+  display: block;
+}
+.admin-only {
+  display: none;
+} /* Esconde por padrão */
+body.is-admin .admin-only {
+  display: list-item; /* Mostra o LI do menu */
+}
+body.is-admin .section.admin-only {
+  display: none; /* A seção continua escondida até ser ativada pelo JS */
+}
+body.is-admin .section.admin-only.active {
+  display: block; /* A seção só aparece se for de admin E estiver ativa */
+}
+
+/* --- ESTILOS GERAIS (Botões, Modais, etc) --- */
 .btn {
   padding: 10px 15px;
   border: none;
@@ -560,12 +572,6 @@ header {
   display: grid;
   grid-template-columns: 1fr;
   gap: 20px;
-}
-.section {
-  display: none;
-}
-.section.active {
-  display: block;
 }
 .action-btn {
   padding: 5px 10px;
@@ -755,32 +761,8 @@ header {
   .data-card.agendamento-card {
     grid-template-columns: 1.5fr 1fr 1.5fr 1.5fr 0.5fr 1fr;
   }
-  .agendamento-card .desktop-view .badge {
-    grid-column: 5;
-  }
-  .agendamento-card .data-card-actions {
-    grid-column: 6;
-  }
   .user-grid,
   .data-card.user-card {
     grid-template-columns: 2fr 2fr 1.5fr 0.5fr 1fr;
   }
-}
-
-/* --- REGRAS DE CONTROLE DE ACESSO --- */
-
-/* Por padrão, esconde qualquer elemento que só o admin pode ver */
-.admin-only {
-    display: none !important;
-}
-
-/* Quando o usuário logado for admin, o body receberá a classe 'is-admin' */
-/* e estas regras serão aplicadas para mostrar os elementos. */
-body.is-admin .admin-only {
-    display: block !important;
-}
-
-/* Caso especial para o item de menu, que é um <li> */
-body.is-admin .sidebar-menu .admin-only {
-    display: list-item !important;
 }

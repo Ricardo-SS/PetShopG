@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
     
-  // --- ELEMENTOS E EVENTOS GERAIS ---
+  // --- ELEMENTOS DO DOM ---
   const menuToggle = document.getElementById('menu-toggle');
   const menuOverlay = document.getElementById('menu-overlay');
   const body = document.body;
@@ -14,17 +14,46 @@ document.addEventListener('DOMContentLoaded', async () => {
   const animalSearchInput = document.getElementById('animal-search-input');
   const animalClearSearchBtn = document.getElementById('animal-clear-search-btn');
 
-  // --- FUNÇÃO DE CONTROLE DE ACESSO ---
+  // --- FUNÇÃO DE CONTROLE DE ACESSO (VERSÃO CORRETA E SIMPLES) ---
   const checkAdminAccess = () => {
     const session = api.getSession();
-    const adminElements = document.querySelectorAll('.admin-only');
-    const displayValue = session.isAdmin() ? 'block' : 'none';
-    
-    adminElements.forEach(el => {
-        el.style.display = el.tagName === 'LI' ? (session.isAdmin() ? 'list-item' : 'none') : displayValue;
-    });
+    // Adiciona ou remove a classe 'is-admin' do body. O CSS faz o resto.
+    document.body.classList.toggle('is-admin', session.isAdmin());
   };
 
+  // --- LÓGICA DE INICIALIZAÇÃO E SESSÃO ---
+  const initializeApp = async () => {
+      const hasSession = await api.checkAndLoadSession();
+      if (hasSession) {
+          loginSection.style.display = 'none';
+          mainSystem.style.display = 'block';
+          checkAdminAccess(); // Verifica permissões assim que a sessão é carregada
+          await renderAll();
+      } else {
+          loginSection.style.display = 'flex';
+          mainSystem.style.display = 'none';
+      }
+  };
+
+  loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const saveBtn = loginForm.querySelector('button[type="submit"]');
+      saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
+      saveBtn.disabled = true;
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const result = await api.login(username, password);
+
+      if (result.success) {
+          await initializeApp(); // Reutiliza a rotina de inicialização
+      } else {
+          alert(result.message || "Falha no login.");
+      }
+      saveBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+      saveBtn.disabled = false;
+  });
+
+  // --- LÓGICA DE NAVEGAÇÃO E MODAIS ---
   const closeMenu = () => body.classList.remove('menu-open');
   menuToggle.addEventListener('click', (e) => { e.stopPropagation(); body.classList.toggle('menu-open'); });
   menuOverlay.addEventListener('click', closeMenu);
@@ -47,56 +76,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
   
-  const initializeApp = async () => {
-      const hasSession = await api.checkAndLoadSession();
-      if (hasSession) {
-          loginSection.style.display = 'none';
-          mainSystem.style.display = 'block';
-          checkAdminAccess();
-          await renderAll();
-      } else {
-          loginSection.style.display = 'flex';
-          mainSystem.style.display = 'none';
-      }
-  };
-
-  loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const saveBtn = loginForm.querySelector('button[type="submit"]');
-      saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
-      saveBtn.disabled = true;
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      const result = await api.login(username, password);
-
-      if (result.success) {
-          await initializeApp();
-      } else {
-          alert(result.message || "Falha no login.");
-      }
-      saveBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
-      saveBtn.disabled = false;
-  });
-  
   const navigateToSection = (sectionId) => {
       document.querySelectorAll('.menu-link').forEach(el => el.classList.remove('active'));
-      document.querySelector(`.menu-link[data-section="${sectionId}"]`)?.classList.add('active');
+      const linkToActivate = document.querySelector(`.menu-link[data-section="${sectionId}"]`);
+      if (linkToActivate) linkToActivate.classList.add('active');
+      
       document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-      document.getElementById(sectionId)?.classList.add('active');
+      const sectionToShow = document.getElementById(sectionId);
+      if (sectionToShow) sectionToShow.classList.add('active');
   };
 
   const openModal = (modalId) => document.getElementById(modalId)?.classList.add('active');
   const closeModal = (modal) => modal?.classList.remove('active');
   
   document.querySelectorAll('.open-modal').forEach(btn => btn.addEventListener('click', (e) => {
-      // Limpa formulários antes de abrir o modal para criação
       const modalId = e.currentTarget.dataset.modal;
+      // Reseta o formulário de usuário sempre que o modal de criação é aberto
       if (modalId === 'user-modal') {
         document.getElementById('user-modal-title').textContent = "Novo Usuário";
         const form = document.getElementById('user-form');
         form.reset();
-        form['user-id'] = null; // Garante que não tenha ID de edição
-        form['user-email'].disabled = false;
+        form.querySelector('#user-id').value = '';
+        form.querySelector('#user-email').disabled = false;
         document.getElementById('password-group').style.display = 'block';
       }
       openModal(modalId);
@@ -105,6 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.querySelectorAll('.close-modal').forEach(btn => btn.addEventListener('click', () => closeModal(btn.closest('.modal'))));
   window.addEventListener('click', (e) => { if (e.target.classList.contains('modal')) closeModal(e.target) });
 
+  // --- LÓGICA DE BUSCA ---
   animalSearchBtn.addEventListener('click', async () => {
     const searchTerm = animalSearchInput.value.trim();
     if(searchTerm) {
@@ -119,6 +121,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await renderAnimaisView();
   });
 
+  // --- RENDERIZAÇÃO ---
   const renderAll = async () => {
       await Promise.all([
           renderAnimaisView(), renderServicosCards(), renderAgendamentosView(),
@@ -322,64 +325,40 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (Array.isArray(servicos)) { servicos.forEach(s => servicoSelect.innerHTML += `<option value="${s.id}">${s.nome}</option>`); }
   };
   
-  const renderReport = () => { const container = document.getElementById('report-container'); const template = document.getElementById('technical-report-template'); if(container && template) { container.innerHTML = template.innerHTML; } };
+  const renderReport = () => { /* Vazio por enquanto */ };
 
-  // --- LÓGICA CRUD ---
+  // --- LÓGICA CRUD (INTERAÇÃO COM O USUÁRIO) ---
   document.getElementById('save-animal-btn').addEventListener('click', async () => {
       const form = document.getElementById('animal-form');
       const data = { id: form['animal-id'].value || null, nome: form['animal-name'].value, raca: form['animal-breed'].value, tutor: form['tutor-name'].value, telefone: form['tutor-phone'].value, endereco: form['tutor-address'].value, cor: form['fur-color'].value, pelo: form['fur-type'].value, idade: form['animal-age'].value, peso: form['animal-weight'].value, alergias: form['animal-allergies'].value, obs: form['animal-notes'].value };
       await api.saveAnimal(data);
-      form.reset(); form['animal-id'].value = '';
+      form.reset();
       closeModal(document.getElementById('animal-modal'));
-      await renderAll();
+      await renderAnimaisView();
   });
   
   document.getElementById('save-servico-btn').addEventListener('click', async () => {
       const form = document.getElementById('servico-form');
       const data = { id: form['servico-id'].value || null, nome: form['servico-nome'].value, preco: form['servico-preco'].value, duracao: form['servico-duracao'].value, descricao: form['servico-descricao'].value };
       await api.saveServico(data);
-      form.reset(); form['servico-id'].value = '';
+      form.reset();
       closeModal(document.getElementById('servico-modal'));
-      await renderAll();
+      await renderServicosCards();
   });
 
   document.getElementById('save-agendamento-btn').addEventListener('click', async () => {
       const form = document.getElementById('agendamento-form');
       const data = { id: form['agendamento-id'].value || null, animalId: form['agendamento-animal-id'].value, servicoId: form['agendamento-servico-id'].value, data: form['agendamento-data'].value, hora: form['agendamento-hora'].value, status: form['agendamento-status'].value };
       await api.saveAgendamento(data);
-      form.reset(); form['agendamento-id'].value = '';
+      form.reset();
       closeModal(document.getElementById('agendamento-modal'));
-      await renderAll();
+      await renderAgendamentosView();
+      await renderCalendar();
   });
 
-  window.editAnimal = async (id) => {
-    const animais = await api.getAnimais(); const item = animais.find(i => i.id === id); if (!item) return;
-    const form = document.getElementById('animal-form');
-    form['animal-id'].value = item.id || ''; form['animal-name'].value = item.nome || ''; form['animal-breed'].value = item.raca || ''; form['tutor-name'].value = item.tutor || ''; form['tutor-phone'].value = item.telefone || ''; form['tutor-address'].value = item.endereco || ''; form['fur-color'].value = item.cor || ''; form['fur-type'].value = item.pelo || 'curto'; form['animal-age'].value = item.idade || ''; form['animal-weight'].value = item.peso || ''; form['animal-allergies'].value = item.alergias || ''; form['animal-notes'].value = item.obs || '';
-    openModal('animal-modal');
-  };
-
-  window.editServico = async (id) => {
-    const servicos = await api.getServicos(); const item = servicos.find(i => i.id === id); if (!item) return;
-    const form = document.getElementById('servico-form');
-    form['servico-id'].value = item.id || ''; form['servico-nome'].value = item.nome || ''; form['servico-preco'].value = item.preco || ''; form['servico-duracao'].value = item.duracao || ''; form['servico-descricao'].value = item.descricao || '';
-    openModal('servico-modal');
-  };
-
-  window.editAgendamento = async (id) => {
-    const agendamentos = await api.getAgendamentos(); const item = agendamentos.find(i => i.id === id); if (!item) return;
-    const form = document.getElementById('agendamento-form');
-    form['agendamento-id'].value = item.id || ''; form['agendamento-animal-id'].value = item.animalId || ''; form['agendamento-servico-id'].value = item.servicoId || ''; form['agendamento-data'].value = item.data || ''; form['agendamento-hora'].value = item.hora || ''; form['agendamento-status'].value = item.status || 'Agendado';
-    openModal('agendamento-modal');
-  };
-
-  window.deleteAnimal = async (id) => { if (confirm('Tem certeza?')) { await api.deleteAnimal(id); await renderAll(); } };
-  window.deleteServico = async (id) => { if (confirm('Tem certeza?')) { await api.deleteServico(id); await renderAll(); } };
-  window.deleteAgendamento = async (id) => { if (confirm('Tem certeza?')) { await api.deleteAgendamento(id); await renderAll(); } };
-  
   document.getElementById('save-user-btn').addEventListener('click', async () => {
     const form = document.getElementById('user-form');
-    const id = form['user-id'];
+    const id = form.querySelector('#user-id').value;
     const saveBtn = document.getElementById('save-user-btn');
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
     saveBtn.disabled = true;
@@ -394,10 +373,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             result = await api.createUser(userData);
         }
         if (result.success) {
-            form.reset();
-            form['user-id'] = null;
-            form['user-email'].disabled = false;
-            document.getElementById('password-group').style.display = 'block';
             closeModal(document.getElementById('user-modal'));
             await renderUsersView();
         } else {
@@ -411,19 +386,53 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  window.editAnimal = async (id) => {
+    const animais = await api.getAnimais(); const item = animais.find(i => i.id === id); if (!item) return;
+    const form = document.getElementById('animal-form');
+    form['animal-id'].value = item.id || ''; form['animal-name'].value = item.nome || ''; form['animal-breed'].value = item.raca || ''; form['tutor-name'].value = item.tutor || ''; form['tutor-phone'].value = item.telefone || ''; form['tutor-address'].value = item.endereco || ''; form['fur-color'].value = item.cor || ''; form['fur-type'].value = item.pelo || 'curto'; form['animal-age'].value = item.idade || ''; form['animal-weight'].value = item.peso || ''; form['animal-allergies'].value = item.alergias || ''; form['animal-notes'].value = item.obs || '';
+    openModal('animal-modal');
+  };
+
+  window.editServico = async (id) => {
+    const servicos = await api.getServicos(); const item = servicos.find(i => i.id === id); if (!item) return;
+    const form = document.getElementById('servico-form');
+    form.querySelector('#servico-id').value = item.id || '';
+    form.querySelector('#servico-nome').value = item.nome || '';
+    form.querySelector('#servico-preco').value = item.preco || '';
+    form.querySelector('#servico-duracao').value = item.duracao || '';
+    form.querySelector('#servico-descricao').value = item.descricao || '';
+    openModal('servico-modal');
+  };
+
+  window.editAgendamento = async (id) => {
+    const agendamentos = await api.getAgendamentos(); const item = agendamentos.find(i => i.id === id); if (!item) return;
+    const form = document.getElementById('agendamento-form');
+    form.querySelector('#agendamento-id').value = item.id || '';
+    form.querySelector('#agendamento-animal-id').value = item.animalId || '';
+    form.querySelector('#agendamento-servico-id').value = item.servicoId || '';
+    form.querySelector('#agendamento-data').value = item.data || '';
+    form.querySelector('#agendamento-hora').value = item.hora || '';
+    form.querySelector('#agendamento-status').value = item.status || 'Agendado';
+    openModal('agendamento-modal');
+  };
+
   window.editUser = (user) => {
     const form = document.getElementById('user-form');
     document.getElementById('user-modal-title').textContent = "Editar Usuário";
-    form['user-id'] = user.Username;
-    form['user-name'].value = user.name;
-    form['user-email'].value = user.email;
-    form['user-email'].disabled = true;
-    form['user-funcao'].value = user.funcao;
-    form['user-isAdmin'].checked = user.isAdmin;
+    form.querySelector('#user-id').value = user.Username;
+    form.querySelector('#user-name').value = user.name;
+    form.querySelector('#user-email').value = user.email;
+    form.querySelector('#user-email').disabled = true;
+    form.querySelector('#user-funcao').value = user.funcao;
+    form.querySelector('#user-isAdmin').checked = user.isAdmin;
     document.getElementById('password-group').style.display = 'none';
     openModal('user-modal');
   };
   
+  window.deleteAnimal = async (id) => { if (confirm('Tem certeza?')) { await api.deleteAnimal(id); await renderAll(); } };
+  window.deleteServico = async (id) => { if (confirm('Tem certeza?')) { await api.deleteServico(id); await renderAll(); } };
+  window.deleteAgendamento = async (id) => { if (confirm('Tem certeza?')) { await api.deleteAgendamento(id); await renderAll(); } };
+
   window.deleteUser = async (username) => {
       if (confirm(`Tem certeza que deseja excluir o usuário ${username}?`)) {
           try {
@@ -438,10 +447,3 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Ponto de partida da aplicação
   initializeApp();
 });
-
-const checkAdminAccess = () => {
-    const session = api.getSession();
-    // Adiciona ou remove a classe 'is-admin' do body baseado no grupo do usuário.
-    // É simples e muito mais confiável.
-    document.body.classList.toggle('is-admin', session.isAdmin());
-};

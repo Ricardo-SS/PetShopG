@@ -1,304 +1,350 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PetCare - Sistema de Agendamento</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-    />
-    <link rel="stylesheet" href="style.css" />
-  </head>
 
-  <body>
-    <div id="login-section" class="login-container">
-      <div class="login-card">
-        <div class="login-logo">
-          <i class="fas fa-paw"></i>
-          <h2>PetCare</h2>
-        </div>
-        <form id="login-form">
-          <div class="form-group">
-            <label for="username">Usuário</label>
-            <input
-              type="text"
-              id="username"
-              class="form-control"
-              placeholder="Digite seu usuário"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label for="password">Senha</label>
-            <input
-              type="password"
-              id="password"
-              class="form-control"
-              placeholder="Digite sua senha"
-              required
-            />
-          </div>
-          <button type="submit" class="btn btn-primary" style="width: 100%">
-            <i class="fas fa-sign-in-alt"></i> Entrar
-          </button>
-        </form>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PetCare - Sistema de Agendamento</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div id="login-section" class="login-container">
+    <div class="login-card">
+      <div class="login-logo">
+        <i class="fas fa-paw"></i>
+        <h2>PetCare</h2>
       </div>
+      <form id="login-form">
+        <div class="form-group">
+          <label for="username">Usuário</label>
+          <input type="text" id="username" class="form-control" placeholder="Digite seu usuário" required />
+        </div>
+        <div class="form-group">
+          <label for="password">Senha</label>
+          <input type="password" id="password" class="form-control" placeholder="Digite sua senha" required />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%">
+          <i class="fas fa-sign-in-alt"></i> Entrar
+        </button>
+      </form>
     </div>
+  </div>
 
-    <div id="main-system">
-      <div id="menu-overlay"></div>
-      <div class="container">
-        <header>
-          <button id="menu-toggle" class="menu-toggle">
-            <i class="fas fa-bars"></i>
-          </button>
-          <div class="logo">
-            <i class="fas fa-paw"></i>
-            <h1>Pet<span>Care</span></h1>
+  <div id="main-system">
+    <div id="menu-overlay"></div>
+    <div class="container">
+      <header>
+        <button id="menu-toggle" class="menu-toggle">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="logo">
+          <i class="fas fa-paw"></i>
+          <h1>Pet<span>Care</span></h1>
+        </div>
+        <div class="user-info">
+          <img src="https://ui-avatars.com/api/?name=Admin&background=4e54c8&color=fff" alt="Usuário" />
+          <span class="user-name-desktop">Admin</span>
+        </div>
+      </header>
+
+      <div class="main-content">
+        <aside class="sidebar">
+          <h2>Menu</h2>
+          <ul class="sidebar-menu">
+            <li>
+              <a href="#" class="menu-link active" data-section="dashboard"><i class="fas fa-home"></i> Dashboard</a>
+            </li>
+            <li>
+              <a href="#" class="menu-link" data-section="agendamentos"><i class="fas fa-calendar-alt"></i>
+                Agendamentos</a>
+            </li>
+            <li>
+              <a href="#" class="menu-link" data-section="animais"><i class="fas fa-dog"></i> Animais</a>
+            </li>
+            <li>
+              <a href="#" class="menu-link" data-section="servicos"><i class="fas fa-concierge-bell"></i> Serviços</a>
+            </li>
+            <li class="admin-only">
+              <a href="#" class="menu-link" data-section="config"><i class="fas fa-users-cog"></i> Usuários</a>
+            </li>
+            <li>
+              <a href="#" class="menu-link" data-section="relatorio"><i class="fas fa-chart-bar"></i> Relatório
+                Técnico</a>
+            </li>
+            <li style="margin-top: auto;">
+              <a href="#" id="logout-btn" style="background-color: var(--accent); color: white;">
+                <i class="fas fa-sign-out-alt"></i> Sair
+              </a>
+            </li>
+          </ul>
+        </aside>
+
+        <main class="content">
+          <div id="dashboard" class="section active">
+            <div class="content-header">
+              <h2>Dashboard</h2>
+              <button class="btn btn-primary open-modal" data-modal="agendamento-modal">
+                <i class="fas fa-plus"></i> Novo Agendamento
+              </button>
+            </div>
+            <div id="dashboard-stats" class="dashboard-stats"></div>
+            <div class="dashboard-grid">
+              <div id="calendar-column">
+                <div id="calendar-container" class="calendar"></div>
+              </div>
+              <div id="daily-appointments-column">
+                <h3 id="daily-appointments-title">Agendamentos do Dia</h3>
+                <ul id="daily-appointments-list"></ul>
+              </div>
+            </div>
           </div>
-          <div class="user-info">
-            <img
-              src="https://ui-avatars.com/api/?name=Admin&background=4e54c8&color=fff"
-              alt="Usuário"
-            />
-            <span class="user-name-desktop">Admin</span>
+
+          <div id="animais" class="section">
+            <div class="content-header">
+              <h2>Cadastro de Animais</h2>
+              <div class="search-container">
+                <input type="text" id="animal-search-input" class="form-control"
+                  placeholder="Buscar por nome do pet ou tutor...">
+                <button id="animal-search-btn" class="btn btn-primary"><i class="fas fa-search"></i></button>
+                <button id="animal-clear-search-btn" class="btn btn-secondary" style="display: none;"><i
+                    class="fas fa-times"></i></button>
+              </div>
+              <button class="btn btn-primary open-modal" data-modal="animal-modal">
+                <i class="fas fa-plus"></i> Novo Animal
+              </button>
+            </div>
+            <div class="data-grid-header animal-grid">
+              <span>Animal</span>
+              <span>Tutor</span>
+              <span>Raça</span>
+              <span>Ações</span>
+            </div>
+            <div id="animais-view-container" class="data-grid-body"></div>
           </div>
-        </header>
 
-        <div class="main-content">
-          <aside class="sidebar">
-            <h2>Menu</h2>
-            <ul class="sidebar-menu">
-              <li>
-                <a href="#" class="menu-link active" data-section="dashboard"
-                  ><i class="fas fa-home"></i> Dashboard</a
-                >
-              </li>
-              <li>
-                <a href="#" class="menu-link" data-section="agendamentos"
-                  ><i class="fas fa-calendar-alt"></i> Agendamentos</a
-                >
-              </li>
-              <li>
-                <a href="#" class="menu-link" data-section="animais"
-                  ><i class="fas fa-dog"></i> Animais</a
-                >
-              </li>
-              <li>
-                <a href="#" class="menu-link" data-section="servicos"
-                  ><i class="fas fa-concierge-bell"></i> Serviços</a
-                >
-              </li>
-              <li class="admin-only">
-                <a href="#" class="menu-link" data-section="config"
-                  ><i class="fas fa-users-cog"></i> Usuários</a>
-              </li>
-              <li>
-                <a href="#" class="menu-link" data-section="relatorio"
-                  ><i class="fas fa-chart-bar"></i> Relatório Técnico</a
-                >
-              </li>
-              <li style="margin-top: auto;">
-                  <a href="#" id="logout-btn" style="background-color: var(--accent); color: white;">
-                      <i class="fas fa-sign-out-alt"></i> Sair
-                  </a>
-              </li>
-            </ul>
-          </aside>
+          <div id="servicos" class="section">
+            <div class="content-header">
+              <h2>Serviços</h2>
+              <button class="btn btn-primary open-modal" data-modal="servico-modal">
+                <i class="fas fa-plus"></i> Novo Serviço
+              </button>
+            </div>
+            <div id="servicos-card-grid" class="card-grid"></div>
+          </div>
 
-          <main class="content">
-            <div id="dashboard" class="section active">
-              <div class="content-header">
-                <h2>Dashboard</h2>
-                <button
-                  class="btn btn-primary open-modal"
-                  data-modal="agendamento-modal"
-                >
+          <div id="agendamentos" class="section">
+            <div id="agendamentos-header" class="content-header">
+              <h2 id="agendamentos-title">Todos os Agendamentos</h2>
+              <div>
+                <button id="show-all-agendamentos-btn" class="btn btn-secondary" style="display: none">
+                  <i class="fas fa-list"></i> Mostrar Todos
+                </button>
+                <button class="btn btn-primary open-modal" data-modal="agendamento-modal">
                   <i class="fas fa-plus"></i> Novo Agendamento
                 </button>
               </div>
-              <div id="dashboard-stats" class="dashboard-stats"></div>
-              <div class="dashboard-grid">
-                <div id="calendar-column">
-                  <div id="calendar-container" class="calendar"></div>
-                </div>
-                <div id="daily-appointments-column">
-                  <h3 id="daily-appointments-title">Agendamentos do Dia</h3>
-                  <ul id="daily-appointments-list"></ul>
-                </div>
-              </div>
             </div>
+            <div class="data-grid-header agendamento-grid">
+              <span>Data/Hora</span>
+              <span>Animal</span>
+              <span>Tutor</span>
+              <span>Serviço</span>
+              <span>Status</span>
+              <span>Ações</span>
+            </div>
+            <div id="agendamentos-view-container" class="data-grid-body"></div>
+          </div>
 
-            <div id="animais" class="section">
-              <div class="content-header">
-                <h2>Cadastro de Animais</h2>
-                <div class="search-container">
-                    <input type="text" id="animal-search-input" class="form-control" placeholder="Buscar por nome do pet ou tutor...">
-                    <button id="animal-search-btn" class="btn btn-primary"><i class="fas fa-search"></i></button>
-                    <button id="animal-clear-search-btn" class="btn btn-secondary" style="display: none;"><i class="fas fa-times"></i></button>
-                </div>
-                <button
-                  class="btn btn-primary open-modal"
-                  data-modal="animal-modal"
-                >
-                  <i class="fas fa-plus"></i> Novo Animal
-                </button>
-              </div>
-              <div class="data-grid-header animal-grid">
-                <span>Animal</span>
-                <span>Tutor</span>
-                <span>Raça</span>
-                <span>Ações</span>
-              </div>
-              <div id="animais-view-container" class="data-grid-body"></div>
+          <div id="config" class="section admin-only">
+            <div class="content-header">
+              <h2>Gerenciamento de Usuários</h2>
+              <button class="btn btn-primary open-modal" data-modal="user-modal">
+                <i class="fas fa-plus"></i> Novo Usuário
+              </button>
             </div>
+            <div class="data-grid-header user-grid">
+              <span>Nome</span>
+              <span>Usuário (E-mail)</span>
+              <span>Função</span>
+              <span>Admin</span>
+              <span>Ações</span>
+            </div>
+            <div id="users-view-container" class="data-grid-body"></div>
+          </div>
 
-            <div id="servicos" class="section">
-              <div class="content-header">
-                <h2>Serviços</h2>
-                <button
-                  class="btn btn-primary open-modal"
-                  data-modal="servico-modal"
-                >
-                  <i class="fas fa-plus"></i> Novo Serviço
-                </button>
-              </div>
-              <div id="servicos-card-grid" class="card-grid"></div>
+          <div id="relatorio" class="section">
+            <div class="content-header">
+              <h2>Relatório Técnico</h2>
             </div>
-
-            <div id="agendamentos" class="section">
-              <div id="agendamentos-header" class="content-header">
-                <h2 id="agendamentos-title">Todos os Agendamentos</h2>
-                <div>
-                  <button
-                    id="show-all-agendamentos-btn"
-                    class="btn btn-secondary"
-                    style="display: none"
-                  >
-                    <i class="fas fa-list"></i> Mostrar Todos
-                  </button>
-                  <button
-                    class="btn btn-primary open-modal"
-                    data-modal="agendamento-modal"
-                  >
-                    <i class="fas fa-plus"></i> Novo Agendamento
-                  </button>
-                </div>
-              </div>
-              <div class="data-grid-header agendamento-grid">
-                <span>Data/Hora</span>
-                <span>Animal</span>
-                <span>Tutor</span>
-                <span>Serviço</span>
-                <span>Status</span>
-                <span>Ações</span>
-              </div>
-              <div
-                id="agendamentos-view-container"
-                class="data-grid-body"
-              ></div>
-            </div>
-
-            <div id="config" class="section admin-only">
-                <div class="content-header">
-                    <h2>Gerenciamento de Usuários</h2>
-                    <button class="btn btn-primary open-modal" data-modal="user-modal">
-                        <i class="fas fa-plus"></i> Novo Usuário
-                    </button>
-                </div>
-                <div class="data-grid-header user-grid">
-                    <span>Nome</span>
-                    <span>Usuário (E-mail)</span>
-                    <span>Função</span>
-                    <span>Admin</span>
-                    <span>Ações</span>
-                </div>
-                <div id="users-view-container" class="data-grid-body"></div>
-            </div>
-
-            <div id="relatorio" class="section">
-              <div class="content-header">
-                <h2>Relatório Técnico</h2>
-              </div>
-              <div id="report-container" class="report-container"></div>
-            </div>
-          </main>
-        </div>
+            <div id="report-container" class="report-container"></div>
+          </div>
+        </main>
       </div>
     </div>
+  </div>
 
-    <div id="animal-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header"><h3>Cadastro de Animal</h3><button class="close-modal">&times;</button></div>
-            <div class="modal-body">
-                <form id="animal-form"><input type="hidden" id="animal-id"><div class="row"><div class="form-group"><label for="animal-name">Nome do Animal</label><input type="text" id="animal-name" class="form-control" required></div><div class="form-group"><label for="animal-breed">Raça</label><input type="text" id="animal-breed" class="form-control" required></div></div><div class="row"><div class="form-group"><label for="tutor-name">Tutor</label><input type="text" id="tutor-name" class="form-control" required></div><div class="form-group"><label for="tutor-phone">Telefone</label><input type="tel" id="tutor-phone" class="form-control" required></div></div><div class="form-group"><label for="tutor-address">Endereço</label><input type="text" id="tutor-address" class="form-control"></div><div class="row"><div class="form-group"><label for="fur-color">Cor da Pelagem</label><input type="text" id="fur-color" class="form-control"></div><div class="form-group"><label for="fur-type">Tipo de Pelo</label><select id="fur-type" class="form-control" required><option value="curto">Curto</option><option value="longo">Longo</option></select></div></div><div class="row"><div class="form-group"><label for="animal-age">Idade (anos)</label><input type="number" id="animal-age" class="form-control" min="0"></div><div class="form-group"><label for="animal-weight">Peso (kg)</label><input type="number" id="animal-weight" class="form-control" min="0" step="0.1"></div></div><div class="form-group"><label for="animal-allergies">Alergias</label><textarea id="animal-allergies" class="form-control" rows="2"></textarea></div><div class="form-group"><label for="animal-notes">Observações</label><textarea id="animal-notes" class="form-control" rows="2"></textarea></div></form>
-            </div>
-            <div class="modal-footer"><button class="btn btn-secondary close-modal">Cancelar</button><button class="btn btn-primary" id="save-animal-btn">Salvar</button></div>
-        </div>
+  <div id="animal-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Cadastro de Animal</h3><button class="close-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="animal-form"><input type="hidden" id="animal-id">
+          <div class="row">
+            <div class="form-group"><label for="animal-name">Nome do Animal</label><input type="text" id="animal-name"
+                class="form-control" required></div>
+            <div class="form-group"><label for="animal-breed">Raça</label><input type="text" id="animal-breed"
+                class="form-control" required></div>
+          </div>
+          <div class="row">
+            <div class="form-group"><label for="tutor-name">Tutor</label><input type="text" id="tutor-name"
+                class="form-control" required></div>
+            <div class="form-group"><label for="tutor-phone">Telefone</label><input type="tel" id="tutor-phone"
+                class="form-control" required></div>
+          </div>
+          <div class="form-group"><label for="tutor-address">Endereço</label><input type="text" id="tutor-address"
+              class="form-control"></div>
+          <div class="row">
+            <div class="form-group"><label for="fur-color">Cor da Pelagem</label><input type="text" id="fur-color"
+                class="form-control"></div>
+            <div class="form-group"><label for="fur-type">Tipo de Pelo</label><select id="fur-type" class="form-control"
+                required>
+                <option value="curto">Curto</option>
+                <option value="longo">Longo</option>
+              </select></div>
+          </div>
+          <div class="row">
+            <div class="form-group"><label for="animal-age">Idade (anos)</label><input type="number" id="animal-age"
+                class="form-control" min="0"></div>
+            <div class="form-group"><label for="animal-weight">Peso (kg)</label><input type="number" id="animal-weight"
+                class="form-control" min="0" step="0.1"></div>
+          </div>
+          <div class="form-group"><label for="animal-allergies">Alergias</label><textarea id="animal-allergies"
+              class="form-control" rows="2"></textarea></div>
+          <div class="form-group"><label for="animal-notes">Observações</label><textarea id="animal-notes"
+              class="form-control" rows="2"></textarea></div>
+        </form>
+      </div>
+      <div class="modal-footer"><button class="btn btn-secondary close-modal">Cancelar</button><button
+          class="btn btn-primary" id="save-animal-btn">Salvar</button></div>
     </div>
-    
-    <div id="servico-modal" class="modal">
-        <div class="modal-content"><div class="modal-header"><h3>Cadastro de Serviço</h3><button class="close-modal">&times;</button></div><div class="modal-body"><form id="servico-form"><input type="hidden" id="servico-id"><div class="form-group"><label for="servico-nome">Nome do Serviço</label><input type="text" id="servico-nome" class="form-control" required></div><div class="row"><div class="form-group"><label for="servico-preco">Preço (R$)</label><input type="number" id="servico-preco" class="form-control" min="0" step="0.01" required></div><div class="form-group"><label for="servico-duracao">Duração (minutos)</label><input type="number" id="servico-duracao" class="form-control" min="0" required></div></div><div class="form-group"><label for="servico-descricao">Descrição</label><textarea id="servico-descricao" class="form-control" rows="3"></textarea></div></form></div><div class="modal-footer"><button class="btn btn-secondary close-modal">Cancelar</button><button class="btn btn-primary" id="save-servico-btn">Salvar</button></div></div>
-    </div>
+  </div>
 
-    <div id="agendamento-modal" class="modal">
-        <div class="modal-content"><div class="modal-header"><h3>Novo Agendamento</h3><button class="close-modal">&times;</button></div><div class="modal-body"><form id="agendamento-form"><input type="hidden" id="agendamento-id"><div class="form-group"><label for="agendamento-animal-id">Animal</label><select id="agendamento-animal-id" class="form-control" required></select></div><div class="form-group"><label for="agendamento-servico-id">Serviço</label><select id="agendamento-servico-id" class="form-control" required></select></div><div class="form-group"><label for="agendamento-data">Data</label><input type="date" id="agendamento-data" class="form-control" required></div><div class="form-group"><label for="agendamento-hora">Horário</label><input type="time" id="agendamento-hora" class="form-control" required></div><div class="form-group"><label for="agendamento-status">Status</label><select id="agendamento-status" class="form-control" required><option value="Agendado">Agendado</option><option value="Confirmado">Confirmado</option><option value="Cancelado">Cancelado</option></select></div></form></div><div class="modal-footer"><button class="btn btn-secondary close-modal">Cancelar</button><button class="btn btn-primary" id="save-agendamento-btn">Salvar</button></div></div>
+  <div id="servico-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Cadastro de Serviço</h3><button class="close-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="servico-form"><input type="hidden" id="servico-id">
+          <div class="form-group"><label for="servico-nome">Nome do Serviço</label><input type="text" id="servico-nome"
+              class="form-control" required></div>
+          <div class="row">
+            <div class="form-group"><label for="servico-preco">Preço (R$)</label><input type="number" id="servico-preco"
+                class="form-control" min="0" step="0.01" required></div>
+            <div class="form-group"><label for="servico-duracao">Duração (minutos)</label><input type="number"
+                id="servico-duracao" class="form-control" min="0" required></div>
+          </div>
+          <div class="form-group"><label for="servico-descricao">Descrição</label><textarea id="servico-descricao"
+              class="form-control" rows="3"></textarea></div>
+        </form>
+      </div>
+      <div class="modal-footer"><button class="btn btn-secondary close-modal">Cancelar</button><button
+          class="btn btn-primary" id="save-servico-btn">Salvar</button></div>
     </div>
-    
-    <div id="appointment-details-modal" class="modal">
-        <div class="modal-content"><div class="modal-header"><h3>Detalhes do Agendamento</h3><button class="close-modal">&times;</button></div><div id="appointment-details-body" class="modal-body"></div><div class="modal-footer"><button class="btn btn-secondary close-modal">Fechar</button></div></div>
-    </div>
+  </div>
 
-    <div id="user-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="user-modal-title">Novo Usuário</h3>
-                <button class="close-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="user-form">
-                    <input type="hidden" id="user-id">
-                    <div class="form-group">
-                        <label for="user-name">Nome Completo</label>
-                        <input type="text" id="user-name" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="user-email">E-mail (será o nome de usuário)</label>
-                        <input type="email" id="user-email" class="form-control" required>
-                    </div>
-                    <div class="form-group" id="password-group">
-                        <label for="user-password">Senha Temporária</label>
-                        <input type="password" id="user-password" class="form-control" required>
-                        <small>A senha deve ter no mínimo 8 caracteres, incluindo letras maiúsculas, minúsculas, números e símbolos.</small>
-                    </div>
-                     <div class="form-group">
-                        <label for="user-funcao">Função</label>
-                        <select id="user-funcao" class="form-control">
-                            <option value="Atendente">Atendente</option>
-                            <option value="Banho">Banho</option>
-                            <option value="Tosador">Tosador</option>
-                            <option value="Motorista">Motorista</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label><input type="checkbox" id="user-isAdmin"> Conceder Acesso de Administrador</label>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary close-modal">Cancelar</button>
-                <button class="btn btn-primary" id="save-user-btn">Salvar</button>
-            </div>
-        </div>
+  <div id="agendamento-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Novo Agendamento</h3><button class="close-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="agendamento-form"><input type="hidden" id="agendamento-id">
+          <div class="form-group"><label for="agendamento-animal-id">Animal</label><select id="agendamento-animal-id"
+              class="form-control" required></select></div>
+          <div class="form-group"><label for="agendamento-servico-id">Serviço</label><select id="agendamento-servico-id"
+              class="form-control" required></select></div>
+          <div class="form-group"><label for="agendamento-data">Data</label><input type="date" id="agendamento-data"
+              class="form-control" required></div>
+          <div class="form-group"><label for="agendamento-hora">Horário</label><input type="time" id="agendamento-hora"
+              class="form-control" required></div>
+          <div class="form-group"><label for="agendamento-status">Status</label><select id="agendamento-status"
+              class="form-control" required>
+              <option value="Agendado">Agendado</option>
+              <option value="Confirmado">Confirmado</option>
+              <option value="Cancelado">Cancelado</option>
+            </select></div>
+        </form>
+      </div>
+      <div class="modal-footer"><button class="btn btn-secondary close-modal">Cancelar</button><button
+          class="btn btn-primary" id="save-agendamento-btn">Salvar</button></div>
     </div>
+  </div>
 
-    <script src="https://unpkg.com/aws-amplify@4/dist/aws-amplify.min.js"></script>
-    <script src="./js/api.js"></script>
-    <script src="./js/script.js"></script>
-    <script id="technical-report-template" type="text/template">
+  <div id="appointment-details-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Detalhes do Agendamento</h3><button class="close-modal">&times;</button>
+      </div>
+      <div id="appointment-details-body" class="modal-body"></div>
+      <div class="modal-footer"><button class="btn btn-secondary close-modal">Fechar</button></div>
+    </div>
+  </div>
+
+  <div id="user-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="user-modal-title">Novo Usuário</h3>
+        <button class="close-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="user-form">
+          <input type="hidden" id="user-id">
+          <div class="form-group">
+            <label for="user-name">Nome Completo</label>
+            <input type="text" id="user-name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="user-email">E-mail (será o nome de usuário)</label>
+            <input type="email" id="user-email" class="form-control" required>
+          </div>
+          <div class="form-group" id="password-group">
+            <label for="user-password">Senha Temporária</label>
+            <input type="password" id="user-password" class="form-control" required>
+            <small>A senha deve ter no mínimo 8 caracteres, incluindo letras maiúsculas, minúsculas, números e
+              símbolos.</small>
+          </div>
+          <div class="form-group">
+            <label for="user-funcao">Função</label>
+            <select id="user-funcao" class="form-control">
+              <option value="Atendente">Atendente</option>
+              <option value="Banho">Banho</option>
+              <option value="Tosador">Tosador</option>
+              <option value="Motorista">Motorista</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label><input type="checkbox" id="user-isAdmin"> Conceder Acesso de Administrador</label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary close-modal">Cancelar</button>
+        <button class="btn btn-primary" id="save-user-btn">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/aws-amplify@4/dist/aws-amplify.min.js"></script>
+  <script src="./js/api.js"></script>
+  <script src="./js/script.js"></script>
+  <script id="technical-report-template" type="text/template">
       <h3>Descrição do Problema</h3><p>Petshops que gerenciam agendamentos manualmente (telefone, planilhas) enfrentam ineficiência, erros e dificuldade em manter um histórico consistente. Esta solução visa digitalizar e centralizar o processo de agendamento, cadastro de clientes/pets e gestão de serviços, melhorando a operação e a experiência do cliente.</p><h3>Arquitetura da Solução na AWS</h3><p>A arquitetura proposta é moderna, escalável e de baixo custo, baseada em um modelo <i>serverless</i>, conforme o diagrama fornecido. Os serviços utilizados são:</p><ol><li><strong>AWS Amplify (Frontend):</strong> Para hospedar a aplicação frontend (React/Vue/Angular ou HTML/JS). O Amplify simplifica o processo de build, deploy e hospedagem, integrando-se nativamente com outros serviços AWS e oferecendo um CI/CD robusto.</li><li><strong>Amazon Route 53 (DNS):</strong> Gerencia o domínio <code>petshop.ufersa.dev.br</code> e direciona o tráfego para a aplicação hospedada no Amplify.</li><li><strong>Amazon Cognito (Autenticação):</strong> Controla o acesso de usuários. Ele gerencia o login, registro e a emissão de tokens seguros (JWT) que são usados para autorizar as chamadas de API.</li><li><strong>Amazon API Gateway (API):</strong> Atua como a porta de entrada para o backend. Recebe as requisições do frontend, valida os tokens do Cognito e as encaminha para as funções Lambda apropriadas.</li><li><strong>AWS Lambda (Backend/CRUD):</strong> Contém a lógica de negócio (CRUD - Create, Read, Update, Delete). Funções serverless são executadas sob demanda para processar requisições como "cadastrar animal" ou "buscar agendamentos".</li><li><strong>Amazon DynamoDB (Banco de Dados):</strong> Banco de dados NoSQL totalmente gerenciado para persistir todos os dados da aplicação (animais, tutores, serviços, agendamentos) com alta performance e escalabilidade.</li></ol><div class="arch-diagram"><img src="diagrama.png" alt="Diagrama de Arquitetura"><p><small>Figura 1: Diagrama de arquitetura da solução na AWS.</small></p></div><h3>Autenticação e Autorização</h3><p>A autenticação é gerenciada pelo <strong>Amazon Cognito</strong>. O fluxo é o seguinte:</p><ul><li>O frontend, via biblioteca Amplify, envia as credenciais do usuário para o Cognito User Pool.</li><li>Cognito valida as credenciais e retorna um token JWT.</li><li>Este token é enviado no cabeçalho <code>Authorization</code> de cada requisição para o <strong>API Gateway</strong>.</li><li>O API Gateway possui um "Authorizer" configurado para validar o token com o Cognito antes de permitir que a requisição chegue na função <strong>AWS Lambda</strong>, garantindo acesso seguro aos dados.</li></ul><h3>Configuração de DNS</h3><p>O frontend será acessível através do domínio <strong><code>petshop.ufersa.dev.br</code></strong>. O <strong>Amazon Route 53</strong> será configurado com uma "Hosted Zone" para o domínio <code>ufersa.dev.br</code>, e um registro (<code>A</code> ou <code>CNAME</code>) para o subdomínio <code>petshop</code> apontará para a aplicação hospedada no AWS Amplify.</p><h3>Dados Armazenados no Backend</h3><p>O <strong>Amazon DynamoDB</strong> irá armazenar os dados em diferentes tabelas:</p><ul><li><b>Animais:</b> <code>id</code>, <code>nome</code>, <code>tutor</code>, <code>raca</code>, <code>cor</code>, <code>pelo</code>, <code>idade</code>, <code>peso</code>, <code>alergias</code>, <code>observacoes</code>, <code>infoTutor</code> (nome, telefone, endereço).</li><li><b>Serviços:</b> <code>id</code>, <code>nome</code>, <code>preco</code>, <code>duracao</code>, <code>descricao</code>.</li><li><b>Agendamentos:</b> <code>id</code>, <code>animalId</code>, <code>servicoId</code>, <code>data</code>, <code>hora</code>, <code>status</code>.</li></ul><h3>Estimativa de Custo da Infraestrutura</h3><p>A estimativa de custos, em Reais (R$), para uma operação de pequeno porte (aprox. 500 agendamentos/mês), aproveitando o Free Tier da AWS.</p><table class="data-table"><thead><tr><th>Serviço AWS</th><th>Uso Estimado (Mensal)</th><th>Custo Estimado (R$)</th></tr></thead><tbody><tr><td>AWS Amplify (Hosting)</td><td>5 GB Armazenados, 15 GB Transferência</td><td>R$ 0,00 (Dentro do Free Tier)</td></tr><tr><td>Amazon Cognito</td><td>~500 Usuários Ativos</td><td>R$ 0,00 (Dentro do Free Tier)</td></tr><tr><td>API Gateway (HTTP API)</td><td>~50.000 Requisições</td><td>R$ 0,00 (Dentro do Free Tier)</td></tr><tr><td>AWS Lambda</td><td>~50.000 Execuções (128MB)</td><td>R$ 0,00 (Dentro do Free Tier)</td></tr><tr><td>Amazon DynamoDB</td><td>&lt; 5 GB Armazenamento</td><td>R$ 0,00 (Dentro do Free Tier)</td></tr><tr><td>Amazon Route 53</td><td>1 Zona Hospedada</td><td>~R$ 2,50</td></tr><tr><td><strong>Total Mensal Estimado</strong></td><td></td><td><strong>~R$ 2,50</strong></td></tr></tbody></table><p><small>Nota: Os custos podem variar ligeiramente com a cotação do dólar e o uso real. A maior parte da infraestrutura permanece gratuita para um volume inicial de operações.</small></p>
     </script>
-  </body>
+</body>
+
 </html>
