@@ -3,15 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Sistema de Agendamento PetCare" />
-    <meta name="author" content="PetCare Team" />
-    <meta name="keywords" content="PetCare, Agendamento, Animais, Serviços, Petshop" />
-    <meta name="theme-color" content="#4e54c8
-    <link rel="icon" href="./img/favicon.ico"/>
     <title>PetCare - Sistema de Agendamento</title>
     <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
     />
     <link rel="stylesheet" href="style.css" />
   </head>
@@ -21,7 +16,7 @@
       <div class="login-card">
         <div class="login-logo">
           <i class="fas fa-paw"></i>
-          <h2>Pet<span>Care</span></h2>
+          <h2>PetCare</h2>
         </div>
         <form id="login-form">
           <div class="form-group">
@@ -30,8 +25,7 @@
               type="text"
               id="username"
               class="form-control"
-              placeholder="seu usuário ou email"
-              value=""
+              placeholder="Digite seu usuário"
               required
             />
           </div>
@@ -41,8 +35,7 @@
               type="password"
               id="password"
               class="form-control"
-              placeholder="Sua senha"
-              value=""
+              placeholder="Digite sua senha"
               required
             />
           </div>
@@ -97,21 +90,21 @@
                   ><i class="fas fa-concierge-bell"></i> Serviços</a
                 >
               </li>
+              <li class="admin-only">
+                <a href="#" class="menu-link" data-section="config"
+                  ><i class="fas fa-users-cog"></i> Usuários</a
+                >
+              </li>
               <li>
                 <a href="#" class="menu-link" data-section="relatorio"
                   ><i class="fas fa-chart-bar"></i> Relatório Técnico</a
                 >
               </li>
-              <li class="admin-only" style="display: none;">
-  <a href="#" class="menu-link" data-section="config">
-    <i class="fas fa-users-cog"></i> Usuários
-  </a>
-</li>
-<li style="margin-top: auto;">
-    <a href="#" id="logout-btn" style="background-color: var(--accent); color: white;">
-        <i class="fas fa-sign-out-alt"></i> Sair
-    </a>
-</li>
+              <li style="margin-top: auto;">
+                  <a href="#" id="logout-btn" style="background-color: var(--accent); color: white;">
+                      <i class="fas fa-sign-out-alt"></i> Sair
+                  </a>
+              </li>
             </ul>
           </aside>
 
@@ -141,6 +134,11 @@
             <div id="animais" class="section">
               <div class="content-header">
                 <h2>Cadastro de Animais</h2>
+                <div class="search-container">
+                    <input type="text" id="animal-search-input" class="form-control" placeholder="Buscar por nome do pet ou tutor...">
+                    <button id="animal-search-btn" class="btn btn-primary"><i class="fas fa-search"></i></button>
+                    <button id="animal-clear-search-btn" class="btn btn-secondary" style="display: none;"><i class="fas fa-times"></i></button>
+                </div>
                 <button
                   class="btn btn-primary open-modal"
                   data-modal="animal-modal"
@@ -203,298 +201,98 @@
               ></div>
             </div>
 
+            <div id="config" class="section admin-only">
+                <div class="content-header">
+                    <h2>Gerenciamento de Usuários</h2>
+                    <button class="btn btn-primary open-modal" data-modal="user-modal">
+                        <i class="fas fa-plus"></i> Novo Usuário
+                    </button>
+                </div>
+                <div class="data-grid-header user-grid">
+                    <span>Nome</span>
+                    <span>Usuário (E-mail)</span>
+                    <span>Função</span>
+                    <span>Admin</span>
+                    <span>Ações</span>
+                </div>
+                <div id="users-view-container" class="data-grid-body"></div>
+            </div>
+
             <div id="relatorio" class="section">
               <div class="content-header">
                 <h2>Relatório Técnico</h2>
               </div>
               <div id="report-container" class="report-container"></div>
             </div>
-            <div id="config" class="section">
-    <div class="content-header">
-        <h2>Gerenciamento de Usuários</h2>
-        <button class="btn btn-primary open-modal" data-modal="user-modal">
-            <i class="fas fa-plus"></i> Novo Usuário
-        </button>
-    </div>
-    <div class="data-grid-header user-grid">
-        <span>Usuário (E-mail)</span>
-        <span>Função</span>
-        <span>Ações</span>
-    </div>
-    <div id="users-view-container" class="data-grid-body"></div>
-</div>
-<div id="config" class="section admin-only" style="display: none;">
-    </div>
           </main>
         </div>
       </div>
     </div>
 
     <div id="animal-modal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Cadastro de Animal</h3>
-          <button class="close-modal">&times;</button>
+        <div class="modal-content">
+            <div class="modal-header"><h3>Cadastro de Animal</h3><button class="close-modal">&times;</button></div>
+            <div class="modal-body">
+                <form id="animal-form"><input type="hidden" id="animal-id"><div class="row"><div class="form-group"><label for="animal-name">Nome do Animal</label><input type="text" id="animal-name" class="form-control" required></div><div class="form-group"><label for="animal-breed">Raça</label><input type="text" id="animal-breed" class="form-control" required></div></div><div class="row"><div class="form-group"><label for="tutor-name">Tutor</label><input type="text" id="tutor-name" class="form-control" required></div><div class="form-group"><label for="tutor-phone">Telefone</label><input type="tel" id="tutor-phone" class="form-control" required></div></div><div class="form-group"><label for="tutor-address">Endereço</label><input type="text" id="tutor-address" class="form-control"></div><div class="row"><div class="form-group"><label for="fur-color">Cor da Pelagem</label><input type="text" id="fur-color" class="form-control"></div><div class="form-group"><label for="fur-type">Tipo de Pelo</label><select id="fur-type" class="form-control" required><option value="curto">Curto</option><option value="longo">Longo</option></select></div></div><div class="row"><div class="form-group"><label for="animal-age">Idade (anos)</label><input type="number" id="animal-age" class="form-control" min="0"></div><div class="form-group"><label for="animal-weight">Peso (kg)</label><input type="number" id="animal-weight" class="form-control" min="0" step="0.1"></div></div><div class="form-group"><label for="animal-allergies">Alergias</label><textarea id="animal-allergies" class="form-control" rows="2"></textarea></div><div class="form-group"><label for="animal-notes">Observações</label><textarea id="animal-notes" class="form-control" rows="2"></textarea></div></form>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary close-modal">Cancelar</button><button class="btn btn-primary" id="save-animal-btn">Salvar</button></div>
         </div>
-        <div class="modal-body">
-          <form id="animal-form">
-            <input type="hidden" id="animal-id" />
-            <div class="row">
-              <div class="form-group">
-                <label for="animal-name">Nome do Animal</label
-                ><input
-                  type="text"
-                  id="animal-name"
-                  class="form-control"
-                  required
-                />
-              </div>
-              <div class="form-group">
-                <label for="animal-breed">Raça</label
-                ><input
-                  type="text"
-                  id="animal-breed"
-                  class="form-control"
-                  required
-                />
-              </div>
-            </div>
-            <div class="row">
-              <div class="form-group">
-                <label for="tutor-name">Tutor</label
-                ><input
-                  type="text"
-                  id="tutor-name"
-                  class="form-control"
-                  required
-                />
-              </div>
-              <div class="form-group">
-                <label for="tutor-phone">Telefone</label
-                ><input
-                  type="tel"
-                  id="tutor-phone"
-                  class="form-control"
-                  required
-                />
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="tutor-address">Endereço</label
-              ><input type="text" id="tutor-address" class="form-control" />
-            </div>
-            <div class="row">
-              <div class="form-group">
-                <label for="fur-color">Cor da Pelagem</label
-                ><input type="text" id="fur-color" class="form-control" />
-              </div>
-              <div class="form-group">
-                <label for="fur-type">Tipo de Pelo</label
-                ><select id="fur-type" class="form-control" required>
-                  <option value="curto">Curto</option>
-                  <option value="longo">Longo</option>
-                </select>
-              </div>
-            </div>
-            <div class="row">
-              <div class="form-group">
-                <label for="animal-age">Idade (anos)</label
-                ><input
-                  type="number"
-                  id="animal-age"
-                  class="form-control"
-                  min="0"
-                />
-              </div>
-              <div class="form-group">
-                <label for="animal-weight">Peso (kg)</label
-                ><input
-                  type="number"
-                  id="animal-weight"
-                  class="form-control"
-                  min="0"
-                  step="0.1"
-                />
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="animal-allergies">Alergias</label
-              ><textarea
-                id="animal-allergies"
-                class="form-control"
-                rows="2"
-              ></textarea>
-            </div>
-            <div class="form-group">
-              <label for="animal-notes">Observações</label
-              ><textarea
-                id="animal-notes"
-                class="form-control"
-                rows="2"
-              ></textarea>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary close-modal">Cancelar</button
-          ><button class="btn btn-primary" id="save-animal-btn">Salvar</button>
-        </div>
-      </div>
     </div>
+    
     <div id="servico-modal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Cadastro de Serviço</h3>
-          <button class="close-modal">&times;</button>
-        </div>
-        <div class="modal-body">
-          <form id="servico-form">
-            <input type="hidden" id="servico-id" />
-            <div class="form-group">
-              <label for="servico-nome">Nome do Serviço</label
-              ><input
-                type="text"
-                id="servico-nome"
-                class="form-control"
-                required
-              />
-            </div>
-            <div class="row">
-              <div class="form-group">
-                <label for="servico-preco">Preço (R$)</label
-                ><input
-                  type="number"
-                  id="servico-preco"
-                  class="form-control"
-                  min="0"
-                  step="0.01"
-                  required
-                />
-              </div>
-              <div class="form-group">
-                <label for="servico-duracao">Duração (minutos)</label
-                ><input
-                  type="number"
-                  id="servico-duracao"
-                  class="form-control"
-                  min="0"
-                  required
-                />
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="servico-descricao">Descrição</label
-              ><textarea
-                id="servico-descricao"
-                class="form-control"
-                rows="3"
-              ></textarea>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary close-modal">Cancelar</button
-          ><button class="btn btn-primary" id="save-servico-btn">Salvar</button>
-        </div>
-      </div>
+        <div class="modal-content"><div class="modal-header"><h3>Cadastro de Serviço</h3><button class="close-modal">&times;</button></div><div class="modal-body"><form id="servico-form"><input type="hidden" id="servico-id"><div class="form-group"><label for="servico-nome">Nome do Serviço</label><input type="text" id="servico-nome" class="form-control" required></div><div class="row"><div class="form-group"><label for="servico-preco">Preço (R$)</label><input type="number" id="servico-preco" class="form-control" min="0" step="0.01" required></div><div class="form-group"><label for="servico-duracao">Duração (minutos)</label><input type="number" id="servico-duracao" class="form-control" min="0" required></div></div><div class="form-group"><label for="servico-descricao">Descrição</label><textarea id="servico-descricao" class="form-control" rows="3"></textarea></div></form></div><div class="modal-footer"><button class="btn btn-secondary close-modal">Cancelar</button><button class="btn btn-primary" id="save-servico-btn">Salvar</button></div></div>
     </div>
+
     <div id="agendamento-modal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Novo Agendamento</h3>
-          <button class="close-modal">&times;</button>
-        </div>
-        <div class="modal-body">
-          <form id="agendamento-form">
-            <input type="hidden" id="agendamento-id" />
-            <div class="form-group">
-              <label for="agendamento-animal-id">Animal</label
-              ><select
-                id="agendamento-animal-id"
-                class="form-control"
-                required
-              ></select>
-            </div>
-            <div class="form-group">
-              <label for="agendamento-servico-id">Serviço</label
-              ><select
-                id="agendamento-servico-id"
-                class="form-control"
-                required
-              ></select>
-            </div>
-            <div class="form-group">
-              <label for="agendamento-data">Data</label
-              ><input
-                type="date"
-                id="agendamento-data"
-                class="form-control"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="agendamento-hora">Horário</label
-              ><input
-                type="time"
-                id="agendamento-hora"
-                class="form-control"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="agendamento-status">Status</label
-              ><select id="agendamento-status" class="form-control" required>
-                <option value="Agendado">Agendado</option>
-                <option value="Confirmado">Confirmado</option>
-                <option value="Cancelado">Cancelado</option>
-              </select>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary close-modal">Cancelar</button
-          ><button class="btn btn-primary" id="save-agendamento-btn">
-            Salvar
-          </button>
-        </div>
-      </div>
+        <div class="modal-content"><div class="modal-header"><h3>Novo Agendamento</h3><button class="close-modal">&times;</button></div><div class="modal-body"><form id="agendamento-form"><input type="hidden" id="agendamento-id"><div class="form-group"><label for="agendamento-animal-id">Animal</label><select id="agendamento-animal-id" class="form-control" required></select></div><div class="form-group"><label for="agendamento-servico-id">Serviço</label><select id="agendamento-servico-id" class="form-control" required></select></div><div class="form-group"><label for="agendamento-data">Data</label><input type="date" id="agendamento-data" class="form-control" required></div><div class="form-group"><label for="agendamento-hora">Horário</label><input type="time" id="agendamento-hora" class="form-control" required></div><div class="form-group"><label for="agendamento-status">Status</label><select id="agendamento-status" class="form-control" required><option value="Agendado">Agendado</option><option value="Confirmado">Confirmado</option><option value="Cancelado">Cancelado</option></select></div></form></div><div class="modal-footer"><button class="btn btn-secondary close-modal">Cancelar</button><button class="btn btn-primary" id="save-agendamento-btn">Salvar</button></div></div>
     </div>
+    
     <div id="appointment-details-modal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Detalhes do Agendamento</h3>
-          <button class="close-modal">&times;</button>
-        </div>
-        <div id="appointment-details-body" class="modal-body"></div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary close-modal">Fechar</button>
-        </div>
-      </div>
+        <div class="modal-content"><div class="modal-header"><h3>Detalhes do Agendamento</h3><button class="close-modal">&times;</button></div><div id="appointment-details-body" class="modal-body"></div><div class="modal-footer"><button class="btn btn-secondary close-modal">Fechar</button></div></div>
     </div>
+
     <div id="user-modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Novo Usuário</h3>
-            <button class="close-modal">&times;</button>
-        </div>
-        <div class="modal-body">
-            <form id="user-form">
-                <div class="form-group">
-                    <label for="user-email">E-mail (será o nome de usuário)</label>
-                    <input type="email" id="user-email" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="user-password">Senha Temporária</label>
-                    <input type="password" id="user-password" class="form-control" required>
-                </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary close-modal">Cancelar</button>
-            <button class="btn btn-primary" id="save-user-btn">Salvar Usuário</button>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="user-modal-title">Novo Usuário</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="user-form">
+                    <input type="hidden" id="user-id">
+                    <div class="form-group">
+                        <label for="user-name">Nome Completo</label>
+                        <input type="text" id="user-name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="user-email">E-mail (será o nome de usuário)</label>
+                        <input type="email" id="user-email" class="form-control" required>
+                    </div>
+                    <div class="form-group" id="password-group">
+                        <label for="user-password">Senha Temporária</label>
+                        <input type="password" id="user-password" class="form-control" required>
+                        <small>A senha deve ter no mínimo 8 caracteres, incluindo letras maiúsculas, minúsculas, números e símbolos.</small>
+                    </div>
+                     <div class="form-group">
+                        <label for="user-funcao">Função</label>
+                        <select id="user-funcao" class="form-control">
+                            <option value="Atendente">Atendente</option>
+                            <option value="Banho">Banho</option>
+                            <option value="Tosador">Tosador</option>
+                            <option value="Motorista">Motorista</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><input type="checkbox" id="user-isAdmin"> Conceder Acesso de Administrador</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal">Cancelar</button>
+                <button class="btn btn-primary" id="save-user-btn">Salvar</button>
+            </div>
         </div>
     </div>
-</div>
 
     <script src="https://unpkg.com/aws-amplify@4/dist/aws-amplify.min.js"></script>
     <script src="./js/api.js"></script>

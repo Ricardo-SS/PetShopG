@@ -8,9 +8,7 @@ API.configure({
   endpoints: [
     {
       name: "PetCareAPI",
-      endpoint: "https://adjwk4bhq1.execute-api.us-east-1.amazonaws.com/v1",
-      // endpoint: "https://api.ricardo.group-05.dev.ufersa.dev.br",
-      
+      endpoint: "https://api.ricardo.group-05.dev.ufersa.dev.br",
       custom_header: async () => {
         try {
           return {
@@ -33,9 +31,13 @@ const session = {
 };
 
 const api = {
-  getAnimais: async () => {
+  getAnimais: async (searchParams = {}) => {
     try {
-      return await API.get("PetCareAPI", "/items/animais");
+      const queryString = new URLSearchParams(searchParams).toString();
+      const path = queryString
+        ? `/items/animais?${queryString}`
+        : "/items/animais";
+      return await API.get("PetCareAPI", path);
     } catch (error) {
       console.error("Erro ao buscar animais:", error);
       return [];
@@ -47,6 +49,7 @@ const api = {
       : await API.post("PetCareAPI", "/items/animais", { body: data }),
   deleteAnimal: async (id) =>
     await API.del("PetCareAPI", `/items/animais/${id}`),
+
   getServicos: async () => {
     try {
       return await API.get("PetCareAPI", "/items/servicos");
@@ -63,6 +66,7 @@ const api = {
       : await API.post("PetCareAPI", "/items/servicos", { body: data }),
   deleteServico: async (id) =>
     await API.del("PetCareAPI", `/items/servicos/${id}`),
+
   getAgendamentos: async () => {
     try {
       return await API.get("PetCareAPI", "/items/agendamentos");
@@ -100,6 +104,18 @@ const api = {
       return { success: false, error };
     }
   },
+  checkAndLoadSession: async () => {
+    try {
+      session.user = await Auth.currentAuthenticatedUser();
+      const userSession = await Auth.currentSession();
+      session.groups = userSession.getIdToken().payload["cognito:groups"] || [];
+      return true;
+    } catch (e) {
+      session.user = null;
+      session.groups = [];
+      return false;
+    }
+  },
   getSession: () => session,
 
   getUsers: async () => {
@@ -118,24 +134,15 @@ const api = {
       return { success: false, message: errorMessage };
     }
   },
-
-    checkAndLoadSession: async () => {
-        try {
-            // Tenta obter o usuário autenticado atual. Se falhar, vai para o catch.
-            session.user = await Auth.currentAuthenticatedUser();
-            
-            // Se funcionou, pega os dados da sessão (incluindo os grupos de admin)
-            const userSession = await Auth.currentSession();
-            session.groups = userSession.getIdToken().payload['cognito:groups'] || [];
-            
-            return true; // Retorna true se houver uma sessão válida
-        } catch (e) {
-            // Se não houver sessão, limpa os dados locais e retorna false
-            session.user = null;
-            session.groups = [];
-            return false;
-        }
-    },
-    
+  saveUser: async (id, userData) => {
+    try {
+      return await API.put("PetCareAPI", `/admin/users/${id}`, {
+        body: userData,
+      });
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message;
+      return { success: false, message: errorMessage };
+    }
+  },
   deleteUser: async (id) => await API.del("PetCareAPI", `/admin/users/${id}`),
 };

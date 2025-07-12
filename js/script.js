@@ -10,22 +10,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   const loginForm = document.getElementById('login-form');
   const agendamentosTitle = document.getElementById('agendamentos-title');
   const showAllAgendamentosBtn = document.getElementById('show-all-agendamentos-btn');
+  const animalSearchBtn = document.getElementById('animal-search-btn');
+  const animalSearchInput = document.getElementById('animal-search-input');
+  const animalClearSearchBtn = document.getElementById('animal-clear-search-btn');
 
+  // --- FUNÇÃO DE CONTROLE DE ACESSO ---
   const checkAdminAccess = () => {
-      const session = api.getSession();
-      const adminElements = document.querySelectorAll('.admin-only');
-      if (session.isAdmin()) {
-          adminElements.forEach(el => {
-              el.style.display = el.tagName === 'LI' ? 'list-item' : 'block';
-          });
-      } else {
-          adminElements.forEach(el => {
-              el.style.display = 'none';
-          });
-      }
+    const session = api.getSession();
+    // Adiciona ou remove a classe 'is-admin' do body baseado no grupo do usuário
+    document.body.classList.toggle('is-admin', session.isAdmin());
   };
 
   const closeMenu = () => body.classList.remove('menu-open');
+
   menuToggle.addEventListener('click', (e) => { e.stopPropagation(); body.classList.toggle('menu-open'); });
   menuOverlay.addEventListener('click', closeMenu);
   
@@ -49,60 +46,89 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   // --- LÓGICA DE INICIALIZAÇÃO DA APLICAÇÃO ---
   const initializeApp = async () => {
-      // Chama a nova função da API para verificar se já existe uma sessão
       const hasSession = await api.checkAndLoadSession();
-
       if (hasSession) {
-          console.log("Sessão válida encontrada, iniciando o sistema...");
           loginSection.style.display = 'none';
           mainSystem.style.display = 'block';
-          checkAdminAccess(); // Verifica se o usuário é admin
-          await renderAll();    // Renderiza todos os dados
+          checkAdminAccess();
+          await renderAll();
       } else {
-          console.log("Nenhuma sessão encontrada, exibindo tela de login.");
-          loginSection.style.display = 'flex'; // Garante que a tela de login esteja visível
+          loginSection.style.display = 'flex';
           mainSystem.style.display = 'none';
       }
   };
 
-  // --- LÓGICA DE LOGIN (quando o usuário clica em Entrar) ---
+  // --- LÓGICA DE LOGIN ---
   loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const saveBtn = loginForm.querySelector('button[type="submit"]');
       saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
       saveBtn.disabled = true;
-
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
       const result = await api.login(username, password);
 
       if (result.success) {
-          await initializeApp(); // Reutiliza a função de inicialização
+          await initializeApp();
       } else {
           alert(result.message || "Falha no login.");
       }
-      
       saveBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
       saveBtn.disabled = false;
   });
-
-  // Inicia a aplicação assim que a página carrega
-  initializeApp();
   
+  // --- LÓGICA DE NAVEGAÇÃO ---
   const navigateToSection = (sectionId) => {
       document.querySelectorAll('.menu-link').forEach(el => el.classList.remove('active'));
-      document.querySelector(`.menu-link[data-section="${sectionId}"]`)?.classList.add('active');
+      const linkToActivate = document.querySelector(`.menu-link[data-section="${sectionId}"]`);
+      if (linkToActivate) linkToActivate.classList.add('active');
+      
       document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-      document.getElementById(sectionId)?.classList.add('active');
+      const sectionToShow = document.getElementById(sectionId);
+      if (sectionToShow) sectionToShow.classList.add('active');
   };
 
-  const openModal = (modalId) => document.getElementById(modalId)?.classList.add('active');
-  const closeModal = (modal) => modal?.classList.remove('active');
+  // --- LÓGICA DE MODAIS ---
+  const openModal = (modalId) => {
+    const modal = document.getElementById(modalId);
+    if(modal) modal.classList.add('active');
+  }
+  const closeModal = (modal) => {
+      if(modal) modal.classList.remove('active');
+  }
   
-  document.querySelectorAll('.open-modal').forEach(btn => btn.addEventListener('click', () => openModal(btn.dataset.modal)));
+  document.querySelectorAll('.open-modal').forEach(btn => btn.addEventListener('click', (e) => {
+      const modalId = e.currentTarget.dataset.modal;
+      if (modalId === 'user-modal') {
+        document.getElementById('user-modal-title').textContent = "Novo Usuário";
+        const form = document.getElementById('user-form');
+        form.reset();
+        form.querySelector('#user-id').value = ''; 
+        form.querySelector('#user-email').disabled = false;
+        document.getElementById('password-group').style.display = 'block';
+      }
+      openModal(modalId);
+  }));
+
   document.querySelectorAll('.close-modal').forEach(btn => btn.addEventListener('click', () => closeModal(btn.closest('.modal'))));
   window.addEventListener('click', (e) => { if (e.target.classList.contains('modal')) closeModal(e.target) });
 
+  // --- LÓGICA DE BUSCA ---
+  animalSearchBtn.addEventListener('click', async () => {
+    const searchTerm = animalSearchInput.value.trim();
+    if(searchTerm) {
+        await renderAnimaisView({ search: searchTerm });
+        animalClearSearchBtn.style.display = 'inline-flex';
+    }
+  });
+
+  animalClearSearchBtn.addEventListener('click', async () => {
+    animalSearchInput.value = '';
+    animalClearSearchBtn.style.display = 'none';
+    await renderAnimaisView();
+  });
+
+  // --- RENDERIZAÇÃO ---
   const renderAll = async () => {
       await Promise.all([
           renderAnimaisView(),
@@ -114,11 +140,10 @@ document.addEventListener('DOMContentLoaded', async () => {
           renderUsersView()
       ]);
       await showAppointmentsForDay(new Date().toISOString().slice(0, 10));
-      renderReport();
   };
 
-  const renderAnimaisView = async () => {
-      const animais = await api.getAnimais();
+  const renderAnimaisView = async (searchParams = {}) => {
+      const animais = await api.getAnimais(searchParams);
       const container = document.getElementById('animais-view-container');
       container.innerHTML = '';
       if (!Array.isArray(animais)) return;
@@ -128,9 +153,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           card.innerHTML = `
               <div class="data-card-header"><div><div class="title">${animal.nome}</div><div class="subtitle">${animal.raca}</div></div></div>
               <div class="data-card-body"><strong>Tutor: </strong><span>${animal.tutor}</span></div>
-              <span class="desktop-view">${animal.nome}</span>
-              <span class="desktop-view">${animal.tutor}</span>
-              <span class="desktop-view">${animal.raca}</span>
+              <span class="desktop-view">${animal.nome}</span><span class="desktop-view">${animal.tutor}</span><span class="desktop-view">${animal.raca}</span>
               <div class="data-card-actions">
                   <button title="Editar" class="btn-edit action-btn"><i class="fas fa-edit"></i></button>
                   <button title="Excluir" class="btn-delete action-btn"><i class="fas fa-trash"></i></button>
@@ -216,15 +239,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         const card = document.createElement('div');
         card.className = 'data-card user-card';
         card.innerHTML = `
-            <div class="data-card-header"><div class="title">${user.email}</div></div>
-            <div class="data-card-body"><strong>Função: </strong><span>${user.role || 'Padrão'}</span></div>
+            <div class="data-card-header"><div class="title">${user.name || '(Sem nome)'}</div><div class="subtitle">${user.email}</div></div>
+            <div class="data-card-body"><strong>Função: </strong><span>${user.funcao}</span></div>
+            <span class="desktop-view">${user.name || '(Sem nome)'}</span>
             <span class="desktop-view">${user.email}</span>
-            <span class="desktop-view">${user.role || 'Padrão'}</span>
+            <span class="desktop-view">${user.funcao}</span>
+            <span class="desktop-view">${user.isAdmin ? 'Sim' : 'Não'}</span>
             <div class="data-card-actions">
-                <button title="Excluir" class="btn-delete action-btn"><i class="fas fa-trash"></i></button>
+                <button title="Editar" class="btn-edit action-btn"><i class="fas fa-edit"></i></button>
+                <button title="Excluir" class="btn-delete action-btn" ${user.Username.toLowerCase() === 'admin' ? 'disabled' : ''}><i class="fas fa-trash"></i></button>
             </div>`;
-        
-        card.querySelector('.btn-delete').addEventListener('click', () => deleteUser(user.id));
+        card.querySelector('.btn-edit').addEventListener('click', () => editUser(user));
+        if (user.Username.toLowerCase() !== 'admin') {
+            card.querySelector('.btn-delete').addEventListener('click', () => deleteUser(user.Username));
+        }
         container.appendChild(card);
     });
   };
@@ -339,21 +367,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   window.editAnimal = async (id) => {
-    const item = (await api.getAnimais()).find(i => i.id === id); if (!item) return;
+    const animais = await api.getAnimais(); const item = animais.find(i => i.id === id); if (!item) return;
     const form = document.getElementById('animal-form');
     form['animal-id'].value = item.id || ''; form['animal-name'].value = item.nome || ''; form['animal-breed'].value = item.raca || ''; form['tutor-name'].value = item.tutor || ''; form['tutor-phone'].value = item.telefone || ''; form['tutor-address'].value = item.endereco || ''; form['fur-color'].value = item.cor || ''; form['fur-type'].value = item.pelo || 'curto'; form['animal-age'].value = item.idade || ''; form['animal-weight'].value = item.peso || ''; form['animal-allergies'].value = item.alergias || ''; form['animal-notes'].value = item.obs || '';
     openModal('animal-modal');
   };
 
   window.editServico = async (id) => {
-    const item = (await api.getServicos()).find(i => i.id === id); if (!item) return;
+    const servicos = await api.getServicos(); const item = servicos.find(i => i.id === id); if (!item) return;
     const form = document.getElementById('servico-form');
     form['servico-id'].value = item.id || ''; form['servico-nome'].value = item.nome || ''; form['servico-preco'].value = item.preco || ''; form['servico-duracao'].value = item.duracao || ''; form['servico-descricao'].value = item.descricao || '';
     openModal('servico-modal');
   };
 
   window.editAgendamento = async (id) => {
-    const item = (await api.getAgendamentos()).find(i => i.id === id); if (!item) return;
+    const agendamentos = await api.getAgendamentos(); const item = agendamentos.find(i => i.id === id); if (!item) return;
     const form = document.getElementById('agendamento-form');
     form['agendamento-id'].value = item.id || ''; form['agendamento-animal-id'].value = item.animalId || ''; form['agendamento-servico-id'].value = item.servicoId || ''; form['agendamento-data'].value = item.data || ''; form['agendamento-hora'].value = item.hora || ''; form['agendamento-status'].value = item.status || 'Agendado';
     openModal('agendamento-modal');
@@ -365,36 +393,62 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   document.getElementById('save-user-btn').addEventListener('click', async () => {
     const form = document.getElementById('user-form');
-    const userData = { email: form['user-email'].value, password: form['user-password'].value };
-    if (!userData.email || !userData.password) { return alert("Preencha todos os campos."); }
+    const id = form.querySelector('#user-id').value;
     const saveBtn = document.getElementById('save-user-btn');
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
     saveBtn.disabled = true;
     try {
-        const result = await api.createUser(userData);
-        if (result.User || result.success) {
+        let result;
+        if (id) {
+            const userData = { name: form['user-name'].value, funcao: form['user-funcao'].value, isAdmin: form['user-isAdmin'].checked };
+            result = await api.saveUser(id, userData);
+        } else {
+            const userData = { email: form['user-email'].value, password: form['user-password'].value, name: form['user-name'].value, funcao: form['user-funcao'].value, isAdmin: form['user-isAdmin'].checked };
+            if (!userData.email || !userData.password) { throw new Error("E-mail e senha são obrigatórios para novos usuários."); }
+            result = await api.createUser(userData);
+        }
+        if (result.success) {
             form.reset();
+            form.querySelector('#user-id').value = '';
+            form.querySelector('#user-email').disabled = false;
+            document.getElementById('password-group').style.display = 'block';
             closeModal(document.getElementById('user-modal'));
             await renderUsersView();
         } else {
-            alert("Falha ao criar usuário: " + (result.message || "Erro desconhecido."));
+            alert("Falha: " + (result.message || "Erro desconhecido."));
         }
     } catch (error) {
-        alert("Ocorreu um erro inesperado.");
+        alert("Ocorreu um erro: " + error.message);
     } finally {
-        saveBtn.innerHTML = 'Salvar Usuário';
+        saveBtn.innerHTML = 'Salvar';
         saveBtn.disabled = false;
     }
   });
 
-  window.deleteUser = async (id) => {
-    if (confirm(`Tem certeza que deseja excluir o usuário ${id}?`)) {
-        try {
-            await api.deleteUser(id);
-            await renderUsersView();
-        } catch (error) {
-            alert("Falha ao excluir usuário: " + (error.response?.data?.message || error.message));
-        }
-    }
+  window.editUser = (user) => {
+    const form = document.getElementById('user-form');
+    document.getElementById('user-modal-title').textContent = "Editar Usuário";
+    form.querySelector('#user-id').value = user.Username;
+    form.querySelector('#user-name').value = user.name;
+    form.querySelector('#user-email').value = user.email;
+    form.querySelector('#user-email').disabled = true;
+    form.querySelector('#user-funcao').value = user.funcao;
+    form.querySelector('#user-isAdmin').checked = user.isAdmin;
+    document.getElementById('password-group').style.display = 'none';
+    openModal('user-modal');
   };
+  
+  window.deleteUser = async (username) => {
+      if (confirm(`Tem certeza que deseja excluir o usuário ${username}?`)) {
+          try {
+              await api.deleteUser(username);
+              await renderUsersView();
+          } catch (error) {
+              alert("Falha ao excluir usuário: " + (error.response?.data?.message || error.message));
+          }
+      }
+  };
+
+  // Ponto de partida da aplicação
+  initializeApp();
 });
