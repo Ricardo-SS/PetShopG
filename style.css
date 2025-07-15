@@ -2,6 +2,7 @@
   --primary: #5a67d8;
   --secondary: #8f94fb;
   --accent: #f56565;
+  --accent-hover: #f54545;
   --light: #f7fafc;
   --dark: #2d3748;
   --success: #38a169;
@@ -102,7 +103,7 @@ header {
   top: 0;
   left: 0;
   width: 260px;
-  height: 100%;
+  height: 100vh;
   background: white;
   padding: 20px;
   z-index: 1000;
@@ -112,10 +113,19 @@ header {
   display: flex;
   flex-direction: column;
 }
+
 .sidebar-menu {
-  flex-grow: 1;
+  display: flex;
   list-style: none;
+  flex-direction: column;
+  height: 100%; /* altura total da tela */
+  flex-grow: 1;
 }
+
+.sidebar-menu li:last-child {
+  margin-top: auto;
+}
+
 .menu-open .sidebar {
   transform: translateX(0);
 }
@@ -471,6 +481,19 @@ body.is-admin .section.admin-only.active {
   background: var(--accent);
   color: white;
 }
+
+#details-confirm-btn {
+  background: var(--success);
+  color: white;
+}
+button.btn.btn-secondary.close-modal {
+  background: var(--accent);
+  font-size: medium;
+}
+button.btn.btn-secondary.close-modal:hover {
+  background: var(--accent-hover);
+  font-size: medium;
+}
 .login-container,
 .modal {
   display: flex;
@@ -753,9 +776,8 @@ body.is-admin .section.admin-only.active {
   .data-card-actions .btn {
     flex-grow: 0;
   }
-  .animal-grid,
-  .data-card.animal-card {
-    grid-template-columns: 2fr 2fr 2fr 1fr;
+  .animal-grid, .data-card.animal-card {
+    grid-template-columns: 1.2fr 1.3fr 2.5fr 2fr 1fr; /* Adiciona uma coluna para a espécie */
   }
   .agendamento-grid,
   .data-card.agendamento-card {
@@ -765,4 +787,40 @@ body.is-admin .section.admin-only.active {
   .data-card.user-card {
     grid-template-columns: 2fr 2fr 1.5fr 0.5fr 1fr;
   }
+}
+
+/* --- NOVOS ESTILOS PARA DASHBOARD E MODAL --- */
+
+/* Novo layout para os cards de agendamento na Dashboard */
+#daily-appointments-list li {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#daily-appointments-list .appointment-icon i {
+    font-size: 1.5rem;
+    color: var(--primary);
+    opacity: 0.7;
+}
+
+#daily-appointments-list .appointment-info {
+    flex-grow: 1; /* Faz esta div ocupar o espaço do meio */
+}
+
+/* Empurra o status para a extremidade direita */
+#daily-appointments-list .appointment-status {
+    margin-left: auto; 
+}
+
+/* Alinhamento do status no Modal de Detalhes */
+#appointment-details-body .details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+#appointment-details-body .details-header h4 {
+    margin: 0; /* Remove margem padrão do h4 */
 }

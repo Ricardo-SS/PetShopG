@@ -62,7 +62,7 @@
                 Agendamentos</a>
             </li>
             <li>
-              <a href="#" class="menu-link" data-section="animais"><i class="fas fa-dog"></i> Animais</a>
+              <a href="#" class="menu-link" data-section="animais"><i class="fas fa-dog"></i> Cadastro de Animais</a>
             </li>
             <li>
               <a href="#" class="menu-link" data-section="servicos"><i class="fas fa-concierge-bell"></i> Serviços</a>
@@ -117,7 +117,8 @@
               </button>
             </div>
             <div class="data-grid-header animal-grid">
-              <span>Animal</span>
+              <span>Nome</span>
+              <span>Espécie</span>
               <span>Tutor</span>
               <span>Raça</span>
               <span>Ações</span>
@@ -196,6 +197,20 @@
           <div class="row">
             <div class="form-group"><label for="animal-name">Nome do Animal</label><input type="text" id="animal-name"
                 class="form-control" required></div>
+            <div class="row">
+              <div class="form-group">
+                <label for="species-type">Espécie</label>
+                <select id="species-type" class="form-control" required>
+                  <option value="Cachorro">Cachorro</option>
+                  <option value="Gato">Gato</option>
+                  <option value="Outro">Outro</option>
+                </select>
+              </div>
+              <!-- <div class="form-group">
+                <label for="animal-breed">Raça</label>
+                <input type="text" id="animal-breed" class="form-control" required>
+              </div> -->
+            </div>
             <div class="form-group"><label for="animal-breed">Raça</label><input type="text" id="animal-breed"
                 class="form-control" required></div>
           </div>
@@ -214,6 +229,11 @@
                 required>
                 <option value="curto">Curto</option>
                 <option value="longo">Longo</option>
+              </select></div>
+            <div class="form-group"><label for="sex-type">Sexo</label><select id="sex-type" class="form-control"
+                required>
+                <option value="macho">Macho</option>
+                <option value="femea">Fêmea</option>
               </select></div>
           </div>
           <div class="row">
@@ -291,7 +311,19 @@
         <h3>Detalhes do Agendamento</h3><button class="close-modal">&times;</button>
       </div>
       <div id="appointment-details-body" class="modal-body"></div>
-      <div class="modal-footer"><button class="btn btn-secondary close-modal">Fechar</button></div>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <div>
+          <button class="btn btn-secondary close-modal">Fechar</button>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-success" id="details-confirm-btn">
+            <i class="fas fa-check"></i> Confirmar
+          </button>
+          <button class="btn btn-primary" id="details-complete-btn">
+            <i class="fas fa-flag-checkered"></i> Concluído
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 

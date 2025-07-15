@@ -1,9 +1,10 @@
 # CREDENCIAIS
+## Admin
 login: admin
 senha: Admin@123
-
-login: user
-senha: User@123
+## Usuarios
+login: user1@email.com
+senha: User@1234
 
 # SITE
 https://ricardo.group-05.dev.ufersa.dev.br/
