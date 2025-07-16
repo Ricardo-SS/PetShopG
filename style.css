@@ -73,7 +73,7 @@ header {
   color: var(--primary);
   font-weight: 700;
 }
-.logo span {
+.logo span, .login-logo span {
   color: var(--accent);
 }
 .user-info {
