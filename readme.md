@@ -9,6 +9,9 @@ senha: User@1234
 # SITE
 https://ricardo.group-05.dev.ufersa.dev.br/
 
+# API
+https://api.ricardo.group-05.dev.ufersa.dev.br/
+
 # FUNÇAO LAMBDA
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
@@ -102,6 +105,7 @@ export const handler = async (event) => {
             switch (httpMethod) {
                 case 'GET':
                     const queryParams = event.queryStringParameters || {};
+
                     // --- LÓGICA DE BUSCA CORRIGIDA ---
                     // A busca insensível só se aplica à tabela de animais e se o parâmetro 'search' existir.
                     if (queryParams.search && tableName === 'petcare-animais') {
